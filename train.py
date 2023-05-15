@@ -11,12 +11,17 @@ from trainer import Trainer
 from utils import prepare_device
 
 
-# fix random seeds for reproducibility
-SEED = 123
-torch.manual_seed(SEED)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-np.random.seed(SEED)
+# Fix random seed for reproducibility
+def same_seeds(seed):
+	torch.manual_seed(seed)
+	if torch.cuda.is_available():
+			torch.cuda.manual_seed(seed)
+			torch.cuda.manual_seed_all(seed)
+	np.random.seed(seed)
+	random.seed(seed)
+	torch.backends.cudnn.benchmark = False
+	torch.backends.cudnn.deterministic = True
+same_seeds(123)
 
 def main(config):
     logger = config.get_logger('train')
