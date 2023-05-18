@@ -1,4 +1,4 @@
-# AutoFMRI: An Automated Two-stage Thresholding for fMRI Decoding
+# AutoFMRI: An Automatic Two-stage Thresholding for fMRI Decoding
 
 ## Overview
 Decoding models interpret neural activity to infer information in brain-computer interfaces. The challenge is the excess of features compared to the number of trials due to the high spatial resolution of fMRI. To address this, we introduce a two-stage thresholding technique that selects relevant voxels from the entire brain, improving decoding performance. This approach has shown to enhance regression performance in decoding musical pitch value, with a significant increase compared to restricting voxels to the auditory cortex alone. We also compare the performance of random forest and convolutional neural network decoders in this context.
