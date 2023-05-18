@@ -107,6 +107,7 @@ input/
 saved/
 datasets/
 result/
+results/
 *.csv
 *.out
 
