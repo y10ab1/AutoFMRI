@@ -53,6 +53,7 @@ def get_args():
     args.add_argument('--stage2_model', type=str, default='rf', help='Specify the stage 2 model', choices=['rf', 'cnn', 'cu_rf'])
     args.add_argument('--kfold', type=int, default=4, help='Specify the number of folds for cross validation')
     args.add_argument('--n_jobs', type=int, default=-1, help='Specify the number of jobs for sklearn parallel processing')
+    args.add_argument('--n_bins', type=int, default=16, help='Specify the number of bins for cuml parallel processing')
     args.add_argument('--n_streams', type=int, default=8, help='Specify the number of streams for cuml parallel processing')
     args.add_argument('--k', type=int, default=5, help='Specify the number of top performance patches')
     args.add_argument('--k_shap_percent', type=float, default=0.01, help='Specify the percentage of voxels with top SHAP values', choices=range(0, 1))
@@ -74,7 +75,7 @@ def get_model(model_name, args):
     if model_name == 'rf':
         return skRF(n_estimators=100, n_jobs=args.n_jobs)
     elif model_name == 'cu_rf':
-        return cuRF(n_estimators=100, n_streams=args.n_streams)
+        return cuRF(n_estimators=100, n_streams=args.n_streams, n_bins=args.n_bins)
     elif model_name == 'cnn':
         net = NeuralNetClassifier(module=CNN, 
                                     module__task='classification', 
@@ -190,10 +191,10 @@ def main(args):
         X_test_high_performance_voxels = X_test[:, high_performance_voxels_mask]
 
         y_pred = model.predict(X_test_high_performance_voxels)
-        
+        print('y_pred:', y_pred)
         # inverse transform the labels
         y_test = le.inverse_transform(y_test)
-        y_pred = le.inverse_transform(y_pred)
+        y_pred = le.inverse_transform(y_pred.astype(int))
         
         # save the predictions and targets for each fold
         total_y.extend(y_test)
