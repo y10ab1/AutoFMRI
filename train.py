@@ -57,7 +57,7 @@ def get_args():
     args.add_argument('--k', type=int, default=5, help='Specify the number of top performance patches')
     args.add_argument('--k_shap_percent', type=float, default=0.01, help='Specify the percentage of voxels with top SHAP values', choices=range(0, 1))
     args.add_argument('--cube_size', type=tuple, default=(20, 20, 20), help='Specify the cube size for patchify')
-    
+    args.add_argument('--label_encoder', type=str, default=None, help='Specify the label encoder for inverse transform')
     
     # CNN hyperparameters
     args.add_argument('--num_classes', type=int, default=8, help='Specify the number of classes for classification')
@@ -88,11 +88,12 @@ def get_model(model_name, args):
                                     verbose=args.verbose,
                                     device='cuda' if torch.cuda.is_available() else 'cpu')
         return net
-        
+
 
 def main(args):
     # get data (3D images and labels)
-    X, y = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject).load_data()
+    le = LabelEncoder()
+    X, y = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject, label_encoder=le).load_data()
     
     # get stage 1 & 2 model
     stage1_model = get_model(args.stage1_model, args)
@@ -125,11 +126,7 @@ def main(args):
             # create a new unfit model for each patch from the same stage 1 model
             model = deepcopy(stage1_model)
             
-            # reshape the data for CNN
-            if args.stage1_model == 'cnn':
-                X_train_patch = X_train_patch.reshape(X_train_patch.shape[0], 1, X_train_patch.shape[1])
-                y_train = LabelEncoder().fit_transform(y_train)
-                
+                            
 
             patch_scores.append(cross_val_score(estimator=model, 
                                                 X=X_train_patch,
@@ -146,6 +143,9 @@ def main(args):
         
         for patch_mask in selected_patch_masks:
             X_train_patch = X_train[:, patch_mask[0], patch_mask[1], patch_mask[2]] # (n_samples, n_voxels)
+            
+
+            
             # create a new unfit model for each patch from the same stage 1 model
             model = deepcopy(stage1_model)
             model.fit(X_train_patch, y_train)
@@ -181,12 +181,6 @@ def main(args):
         X_train_high_performance_voxels = X_train[:, high_performance_voxels_mask]
 
 
-        # reshape the data for CNN
-        if args.stage2_model == 'cnn':
-            X_train_high_performance_voxels = X_train_high_performance_voxels.reshape(X_train_high_performance_voxels.shape[0], 1, X_train_high_performance_voxels.shape[1])
-            y_train = LabelEncoder().fit_transform(y_train)
-            
-
         # train stage 2 model on whole K-1 folds
         model = deepcopy(stage2_model)
         model.fit(X_train_high_performance_voxels, y_train)
@@ -194,7 +188,12 @@ def main(args):
         
         # test stage 2 model on the remaining fold
         X_test_high_performance_voxels = X_test[:, high_performance_voxels_mask]
+
         y_pred = model.predict(X_test_high_performance_voxels)
+        
+        # inverse transform the labels
+        y_test = le.inverse_transform(y_test)
+        y_pred = le.inverse_transform(y_pred)
         
         # save the predictions and targets for each fold
         total_y.extend(y_test)
@@ -227,7 +226,7 @@ def main(args):
 
     # print the average classification report
     print('Classification report for all K folds:')
-    print(total_classification_report)
+    print(classification_report(total_y, total_y_pred))
     
         
         
@@ -242,13 +241,12 @@ def main(args):
     # save the evaluation results for all folds
     results_df.to_csv(os.path.join(args.result_dir, 'results.csv'), index=False)
     
-    # get the unique class labels from the targets
-    class_labels = np.unique(y)
+    
 
     # plot and save confusion matrix as percentage
     cm = results_df['Confusion matrix'].iloc[-1] 
     ConfusionMatrixDisplay(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis], 
-                           display_labels=class_labels,
+                           display_labels=np.unique(y), # class_labels
                            ).plot(cmap='Blues', values_format='.2f', xticks_rotation=45)
     
     plt.tight_layout()

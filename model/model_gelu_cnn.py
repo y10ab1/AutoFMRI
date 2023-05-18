@@ -10,7 +10,7 @@ class CNN(nn.Module):
         super().__init__()
         
         self.conv = nn.Sequential(
-            nn.Conv1d(in_channels=1, out_channels=16, kernel_size=3, stride=1, padding=1),
+            nn.LazyConv1d(out_channels=16, kernel_size=3, stride=1, padding=1),
             nn.GELU(),
             #nn.BatchNorm3d(64),
             nn.MaxPool1d(kernel_size=2),
@@ -42,23 +42,25 @@ class CNN(nn.Module):
         self.out = self.regression_head if task != 'classification' else self.classification_head
 
     def forward(self, input_data):
-        x = self.conv(input_data)
+        x = input_data.unsqueeze(1)
+        x = self.conv(x)
         
         x = self.dense(x)
         x = self.flatten(x)
         x = self.out(x)
         
 
-        return x
+        return x.squeeze(1)
 
 if __name__ == "__main__":
     # print torch version
     
-    model = CNN(task = 'regression').cuda()
+    #model = CNN(task = 'regression').cuda()
+    model = CNN().cuda()
     print(model)
     # summary(model, (1, 1000))
     
-    pseudo_input = randn(1, 72, 8000).cuda()
+    pseudo_input = randn(72, 8000).cuda()
     
     output = model(pseudo_input)
     print(output.shape, output)
