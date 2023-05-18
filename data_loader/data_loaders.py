@@ -5,10 +5,9 @@ import numpy as np
 
 class HaxbyDataLoader():
     # Load data from local preprocessed nii.gz files
-    def __init__(self, data_dir, subject, label_encoder=None):
+    def __init__(self, data_dir, subject):
         self.data_dir = data_dir
         self.subject = subject
-        self.label_encoder = label_encoder
 
         
         self.X, self.y = self.load_data()
@@ -29,8 +28,6 @@ class HaxbyDataLoader():
         # Convert X and y to numpy arrays
         X = np.array(X, dtype=np.float32)
         y = np.array(y)
-        if self.label_encoder is not None:
-            y = self.label_encoder.fit_transform(y)
         
         print('X.shape:', X.shape, 'y.shape:', y.shape)
         

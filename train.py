@@ -94,7 +94,8 @@ def get_model(model_name, args):
 def main(args):
     # get data (3D images and labels)
     le = LabelEncoder()
-    X, y = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject, label_encoder=le).load_data()
+    X, y = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject).load_data()
+    y = le.fit_transform(y) # encode labels to integers
     
     # get stage 1 & 2 model
     stage1_model = get_model(args.stage1_model, args)
@@ -191,7 +192,7 @@ def main(args):
         X_test_high_performance_voxels = X_test[:, high_performance_voxels_mask]
 
         y_pred = model.predict(X_test_high_performance_voxels)
-        print('y_pred:', y_pred)
+
         # inverse transform the labels
         y_test = le.inverse_transform(y_test)
         y_pred = le.inverse_transform(y_pred.astype(int))
@@ -247,7 +248,7 @@ def main(args):
     # plot and save confusion matrix as percentage
     cm = results_df['Confusion matrix'].iloc[-1] 
     ConfusionMatrixDisplay(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis], 
-                           display_labels=np.unique(y), # class_labels
+                           display_labels=np.unique(total_y), # class names
                            ).plot(cmap='Blues', values_format='.2f', xticks_rotation=45)
     
     plt.tight_layout()
