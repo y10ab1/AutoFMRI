@@ -100,11 +100,15 @@ ENV/
 # mypy
 .mypy_cache/
 
-# input data, saved log, checkpoints
+# input data, saved log, checkpoints, symbolic link
 data/
+data
 input/
 saved/
 datasets/
+result/
+*.csv
+*.out
 
 # editor, os cache directory
 .vscode/
