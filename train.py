@@ -10,6 +10,7 @@ import os
 import time
 import seaborn as sns
 import matplotlib.pyplot as plt
+import json
 
 from utils.patchify import patchify_by_cube
 from data_loader.data_loaders import HaxbyDataLoader
@@ -47,8 +48,8 @@ same_seeds(SEED)
 def get_args():
     args = argparse.ArgumentParser()
     args.add_argument('--data_dir', type=str, default='data/haxby2001/subj4/first_level_output')
-    args.add_argument('--result_dir', type=str, default=f'result/{time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())}')
     args.add_argument('--subject', type=str, default='sub-04')
+    args.add_argument('--result_dir', type=str, default=f'result/{time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())}')
     args.add_argument('--stage1_model', type=str, default='rf', help='Specify the stage 1 model', choices=['rf', 'cnn', 'cu_rf'])
     args.add_argument('--stage2_model', type=str, default='rf', help='Specify the stage 2 model', choices=['rf', 'cnn', 'cu_rf'])
     args.add_argument('--kfold', type=int, default=4, help='Specify the number of folds for cross validation')
@@ -204,7 +205,8 @@ def main(args):
         # evaluate the performance of stage 2 model and save the results
         print('Accuracy:', accuracy_score(y_test, y_pred))
         print('Confusion matrix:', confusion_matrix(y_test, y_pred))
-        print('Classification report:', classification_report(y_test, y_pred))
+        print('Classification report:')
+        print(classification_report(y_test, y_pred))
         
         report = classification_report(y_test, y_pred, output_dict=True)
         
@@ -240,8 +242,8 @@ def main(args):
                                                         'Classification report': [total_classification_report]})])
    
     
-    # save the evaluation results for all folds
-    results_df.to_csv(os.path.join(args.result_dir, 'results.csv'), index=False)
+    # save the evaluation results for all predictions
+    results_df.to_json(os.path.join(args.result_dir, 'results.json'), orient='records', indent=2)
     
     
 
@@ -262,3 +264,7 @@ if __name__ == '__main__':
     os.makedirs(args.result_dir, exist_ok=True)
     
     main(args)
+    
+    # save args as json file to result directory
+    with open(os.path.join(args.result_dir, 'args.json'), 'w') as f:
+        json.dump(args.__dict__, f, indent=2)

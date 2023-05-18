@@ -1,14 +1,16 @@
 from nilearn.image import load_img
+from nilearn.maskers import NiftiMasker
 import os
 import numpy as np
 
 
 class HaxbyDataLoader():
     # Load data from local preprocessed nii.gz files
-    def __init__(self, data_dir, subject):
+    def __init__(self, data_dir, subject, mask_file=None):
         self.data_dir = data_dir
         self.subject = subject
-
+        self.mask = load_img(mask_file) if mask_file is not None else None
+        print('Mask shape:', self.mask.shape if self.mask is not None else None)
         
         self.X, self.y = self.load_data()
         
@@ -22,16 +24,24 @@ class HaxbyDataLoader():
         for img_file in sorted(os.listdir(self.data_dir)):
             if img_file.endswith('.nii.gz'):
                 img = load_img(os.path.join(self.data_dir, img_file))
-                X.append(img.get_fdata())
+                
+                # Masking
+                if self.mask is not None:
+                    masker = NiftiMasker(mask_img=self.mask, standardize=True)
+                    img = masker.fit_transform(img)
+                
+                X.append(img.get_fdata() if not isinstance(img, np.ndarray) else img)
                 y.append(img_file.split('_')[0])
                 
         # Convert X and y to numpy arrays
-        X = np.array(X, dtype=np.float32)
+        X = np.array(X, dtype=np.float32).squeeze()
         y = np.array(y)
         
+
         print('X.shape:', X.shape, 'y.shape:', y.shape)
         
         return X, y
+    
     
     
 if __name__ == '__main__':
