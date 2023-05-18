@@ -12,9 +12,10 @@
 lscpu
 nvidia-smi
 
-ml r conda-LSA-TW2
-ml cuda/11.4
+#ml r conda-LSA-TW2
+#ml cuda/11.4
 
+conda deactivate
 conda activate autofmri
 
-python train.py
+python train.py --stage2_model cnn

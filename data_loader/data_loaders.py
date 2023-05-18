@@ -26,9 +26,14 @@ class HaxbyDataLoader():
                 y.append(img_file.split('_')[0])
                 
         # Convert X and y to numpy arrays
-        X = np.array(X)
+        X = np.array(X, dtype=np.float32)
         y = np.array(y)
         
         print('X.shape:', X.shape, 'y.shape:', y.shape)
         
         return X, y
+    
+    
+if __name__ == '__main__':
+    X, y = HaxbyDataLoader(data_dir='data/haxby2001/subj4/first_level_output', subject=4).load_data()
+    y = y.astype(np.int)

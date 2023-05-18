@@ -56,9 +56,9 @@ if __name__ == "__main__":
     
     model = CNN(task = 'regression').cuda()
     print(model)
-    summary(model, (1, 1000))
+    # summary(model, (1, 1000))
     
-    pseudo_input = randn(1, 1, 1000).cuda()
+    pseudo_input = randn(1, 72, 8000).cuda()
     
     output = model(pseudo_input)
     print(output.shape, output)

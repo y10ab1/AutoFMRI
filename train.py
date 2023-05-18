@@ -17,6 +17,8 @@ from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier as skRF
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, accuracy_score
+from sklearn.preprocessing import LabelEncoder
+
 
 
 from cuml.ensemble import RandomForestClassifier as cuRF
@@ -106,6 +108,8 @@ def main(args):
     results_df = pd.DataFrame(columns=['Subject', 'Fold', 'Accuracy', 'Confusion matrix', 'Classification report'])
     classification_reports_df = []
 
+    # total predictions and targets
+    total_y, total_y_pred = [], []
     
     for idx, (train_index, test_index) in enumerate(stratified_kfold.split(X, y)):
         patch_scores = []
@@ -120,6 +124,12 @@ def main(args):
             
             # create a new unfit model for each patch from the same stage 1 model
             model = deepcopy(stage1_model)
+            
+            # reshape the data for CNN
+            if args.stage1_model == 'cnn':
+                X_train_patch = X_train_patch.reshape(X_train_patch.shape[0], 1, X_train_patch.shape[1])
+                y_train = LabelEncoder().fit_transform(y_train)
+                
 
             patch_scores.append(cross_val_score(estimator=model, 
                                                 X=X_train_patch,
@@ -170,6 +180,13 @@ def main(args):
         # get the data with high performance voxels
         X_train_high_performance_voxels = X_train[:, high_performance_voxels_mask]
 
+
+        # reshape the data for CNN
+        if args.stage2_model == 'cnn':
+            X_train_high_performance_voxels = X_train_high_performance_voxels.reshape(X_train_high_performance_voxels.shape[0], 1, X_train_high_performance_voxels.shape[1])
+            y_train = LabelEncoder().fit_transform(y_train)
+            
+
         # train stage 2 model on whole K-1 folds
         model = deepcopy(stage2_model)
         model.fit(X_train_high_performance_voxels, y_train)
@@ -178,6 +195,10 @@ def main(args):
         # test stage 2 model on the remaining fold
         X_test_high_performance_voxels = X_test[:, high_performance_voxels_mask]
         y_pred = model.predict(X_test_high_performance_voxels)
+        
+        # save the predictions and targets for each fold
+        total_y.extend(y_test)
+        total_y_pred.extend(y_pred)
         
         # evaluate the performance of stage 2 model and save the results
         print('Accuracy:', accuracy_score(y_test, y_pred))
@@ -193,31 +214,29 @@ def main(args):
                                                             'Confusion matrix': [confusion_matrix(y_test, y_pred)],
                                                             'Classification report': [report]})])
         
-        # create a dataframe for the classification report and append it to the list
-        report_df = pd.DataFrame(report).transpose()
-        report_df['Fold'] = idx + 1
-        classification_reports_df.append(report_df)
         
-    # concatenate all classification report dataframes
-    classification_reports_df = pd.concat(classification_reports_df, axis=0)
-
-    # group by the index (i.e., the class labels) and calculate the mean
-    average_classification_report = classification_reports_df.groupby(classification_reports_df.index).mean()
-
-    # drop the 'Fold' column from the average classification report
-    average_classification_report = average_classification_report.drop(columns='Fold')
+        
+    # Create classification report from total confusion matrix
+    total_confusion_matrix = results_df['Confusion matrix'].sum()
+    total_confusion_matrix = confusion_matrix(total_y, total_y_pred)
+    
+            
+    # Calculate total classification report
+    total_classification_report = classification_report(total_y, total_y_pred, output_dict=True)
+    
 
     # print the average classification report
-    print('Average classification report:')
-    print(average_classification_report)
+    print('Classification report for all K folds:')
+    print(total_classification_report)
+    
         
         
     # average the evaluation results for all folds
     results_df = pd.concat([results_df, pd.DataFrame({'Subject': args.subject,
-                                                        'Fold': ['Average'],
+                                                        'Fold': ['Total'],
                                                         'Accuracy': [results_df['Accuracy'].mean()],
                                                         'Confusion matrix': [results_df['Confusion matrix'].sum()],
-                                                        'Classification report': [average_classification_report]})])
+                                                        'Classification report': [total_classification_report]})])
    
     
     # save the evaluation results for all folds
@@ -231,6 +250,7 @@ def main(args):
     ConfusionMatrixDisplay(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis], 
                            display_labels=class_labels,
                            ).plot(cmap='Blues', values_format='.2f', xticks_rotation=45)
+    
     plt.tight_layout()
     plt.savefig(os.path.join(args.result_dir, 'confusion_matrix.png'))    
         
