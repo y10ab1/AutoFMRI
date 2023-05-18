@@ -20,7 +20,7 @@ Decoding models interpret neural activity to infer information in brain-computer
 
    - Activate the Conda environment:
      ```
-     conda activate fmri
+     conda activate autofmri
      ```
 3. **Install additional packages using pip:**
 
@@ -35,7 +35,7 @@ Decoding models interpret neural activity to infer information in brain-computer
 
    - Run the following command to train the model:
      ```
-     python train.py --data_dir /path/to/data
+     python train.py --data_dir /PATH/TO/DATA
      ```
    - You can also specify the model type for each stage:
      ```
