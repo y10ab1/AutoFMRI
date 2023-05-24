@@ -1,6 +1,8 @@
 from torch import nn, randn
 from torchsummary import summary
 import torch
+import warnings
+import numpy as np
 
 
 
@@ -8,6 +10,10 @@ class CNN(nn.Module):
 
     def __init__(self, task='classification', num_classes=8):
         super().__init__()
+        
+        # Ignore the warning about "Lazy modules"
+        warnings.filterwarnings('ignore', category=UserWarning, message='Lazy modules are a new feature under heavy development')
+
         
         self.conv = nn.Sequential(
             nn.LazyConv1d(out_channels=16, kernel_size=3, stride=1, padding=1),
@@ -34,7 +40,7 @@ class CNN(nn.Module):
             nn.Linear(1000, 500),
         )
 
-        self.flatten = nn.Flatten()
+        # self.flatten = nn.Flatten()
         self.softmax = nn.Softmax(dim=1)
         self.regression_head = nn.LazyLinear(1)
         self.classification_head = nn.LazyLinear(num_classes)
@@ -46,8 +52,8 @@ class CNN(nn.Module):
         x = self.conv(x)
         
         x = self.dense(x)
-        x = self.flatten(x)
-        x = self.out(x)
+        # x = self.flatten(x)
+        x = self.out(x.reshape(x.shape[0], -1))
         
 
         return x.squeeze(1)

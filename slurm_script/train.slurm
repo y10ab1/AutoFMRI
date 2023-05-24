@@ -12,10 +12,11 @@
 lscpu
 nvidia-smi
 
-ml r conda-LSA-TW2
+ml purge
+ml miniconda3
 ml cuda/11.7
 
-conda deactivate
 conda activate autofmri
 
-python train.py --stage2_model cnn
+#python train.py --cube_size "10 10 10" --topk_patches 10
+python train.py 

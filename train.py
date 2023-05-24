@@ -17,7 +17,7 @@ from data_loader.data_loaders import HaxbyDataLoader
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier as skRF
 from sklearn.model_selection import cross_val_score
-from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, accuracy_score
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, accuracy_score, make_scorer
 from sklearn.preprocessing import LabelEncoder
 
 
@@ -56,11 +56,12 @@ def get_args():
     args.add_argument('--n_jobs', type=int, default=-1, help='Specify the number of jobs for sklearn parallel processing')
     args.add_argument('--n_bins', type=int, default=16, help='Specify the number of bins for cuml parallel processing')
     args.add_argument('--n_streams', type=int, default=8, help='Specify the number of streams for cuml parallel processing')
-    args.add_argument('--k', type=int, default=5, help='Specify the number of top performance patches')
-    args.add_argument('--k_shap_percent', type=float, default=0.01, help='Specify the percentage of voxels with top SHAP values', choices=range(0, 1))
-    args.add_argument('--cube_size', type=tuple, default=(20, 20, 20), help='Specify the cube size for patchify')
+    args.add_argument('--topk_patches', type=int, default=5, help='Specify the number of top performance patches')
+    args.add_argument('--topk_percent_shap', type=float, default=0.01, help='Specify the percentage of voxels with top SHAP values', choices=range(0, 1))
+    args.add_argument('--cube_size', type=str, default="20 20 20", help='Specify the cube size for patchify in the format: "x y z" for each dimension')
     args.add_argument('--label_encoder', type=str, default=None, help='Specify the label encoder for inverse transform')
     
+
     # CNN hyperparameters
     args.add_argument('--num_classes', type=int, default=8, help='Specify the number of classes for classification')
     args.add_argument('--num_epochs', type=int, default=100, help='Specify the number of epochs for training')
@@ -69,8 +70,10 @@ def get_args():
     args.add_argument('--weight_decay', type=float, default=0.0, help='Specify the weight decay for training')
     args.add_argument('--verbose', type=int, default=1, help='Specify the verbose for training')
     
-    
-    return args.parse_args()
+    # Post processing for arguments
+    parse_args = args.parse_args()
+    parse_args.cube_size = tuple(map(int, parse_args.cube_size.split()))
+    return parse_args
 
 def get_model(model_name, args):
     if model_name == 'rf':
@@ -138,13 +141,13 @@ def main(args):
                                                 n_jobs=args.n_jobs).mean())
             
         # get top k performance patches
-        print('Top k performance scores:', np.sort(patch_scores)[-args.k:])
-        selected_patch_masks_idx = np.argsort(patch_scores)[-args.k:] # the indices of the top k performance patches
+        print('Top k performance scores:', np.sort(patch_scores)[-args.topk_patches:])
+        selected_patch_masks_idx = np.argsort(patch_scores)[-args.topk_patches:] # the indices of the top k performance patches
         selected_patch_masks = np.array(patch_masks, dtype=object)[selected_patch_masks_idx].tolist() # the top k performance patches
         high_performance_voxels_mask = np.zeros(X_train[0].shape) # the mask for high performance voxels
 
-        
-        for patch_mask in selected_patch_masks:
+        selected_patch_masks_loader = tqdm(selected_patch_masks)
+        for patch_mask in selected_patch_masks_loader:
             X_train_patch = X_train[:, patch_mask[0], patch_mask[1], patch_mask[2]] # (n_samples, n_voxels)
             
 
@@ -155,19 +158,26 @@ def main(args):
             
             # calculate SHAP values
             if args.stage1_model == 'cnn':
-                explainer = shap.DeepExplainer(model.module_, X_train_patch)
+                # Due to some unknown reason, the shap.DeepExplainer does not work on GPU,
+                # so we have to move the data to CPU though it is very slow
+                
+                # X_train_patch = torch.from_numpy(X_train_patch).to('cuda' if torch.cuda.is_available() else 'cpu')
+                X_train_patch = torch.from_numpy(X_train_patch).to('cpu')
+                
+                explainer = shap.DeepExplainer(model.module_.to('cpu'), X_train_patch)
+                shap_values = explainer.shap_values(X_train_patch)
+                
             else:
                 explainer = shap.TreeExplainer(model)
-            
-            shap_values = explainer.shap_values(X_train_patch)
+                shap_values = explainer.shap_values(X_train_patch)
             
             # calculate the mean absolute SHAP values for each class
             mean_abs_shap_values = np.mean(np.abs(shap_values), axis=1)                
             
-            # get top k_shap_percent voxels
-            top_k_shap_values_idx = np.argsort(-np.mean(mean_abs_shap_values, axis=0))[:int(args.k_shap_percent * X_train_patch.shape[1])]
+            # get topk_percent_shap voxels
+            top_k_shap_values_idx = np.argsort(-np.mean(mean_abs_shap_values, axis=0))[:int(args.topk_percent_shap * X_train_patch.shape[1])]
 
-            print('Number of voxels with top k_shap_percent SHAP values:', len(top_k_shap_values_idx))
+            print('Number of voxels with topk_percent_shap SHAP values:', len(top_k_shap_values_idx))
             
             # map these voxels back to the original data space
             top_k_shap_values_idx = np.unravel_index(top_k_shap_values_idx, patch_mask[0].shape)
@@ -176,6 +186,8 @@ def main(args):
             high_performance_voxels_mask[patch_mask[0][top_k_shap_values_idx], 
                                          patch_mask[1][top_k_shap_values_idx], 
                                          patch_mask[2][top_k_shap_values_idx]] = 1
+            
+            selected_patch_masks_loader.set_description(f'Fold {idx+1}/{args.kfold}')
         
         
         high_performance_voxels_mask = high_performance_voxels_mask.astype(bool)
@@ -206,9 +218,9 @@ def main(args):
         print('Accuracy:', accuracy_score(y_test, y_pred))
         print('Confusion matrix:', confusion_matrix(y_test, y_pred))
         print('Classification report:')
-        print(classification_report(y_test, y_pred))
+        print(classification_report(y_test, y_pred, zero_division=0))
         
-        report = classification_report(y_test, y_pred, output_dict=True)
+        report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
         
         # save the evaluation results for each fold
         results_df = pd.concat([results_df, pd.DataFrame({'Subject': args.subject,
@@ -225,12 +237,12 @@ def main(args):
     
             
     # Calculate total classification report
-    total_classification_report = classification_report(total_y, total_y_pred, output_dict=True)
+    total_classification_report = classification_report(total_y, total_y_pred, output_dict=True, zero_division=0)
     
 
     # print the average classification report
     print('Classification report for all K folds:')
-    print(classification_report(total_y, total_y_pred))
+    print(classification_report(total_y, total_y_pred, zero_division=0))
     
         
         

@@ -1,5 +1,7 @@
 import numpy as np
-
+from nilearn import datasets
+from nilearn.maskers import NiftiLabelsMasker
+from nilearn.image import get_data
 
 def patchify_by_cube(X, cube_size=(20, 20, 20), stride=(20, 20, 20)):
     # X is a 4D array of shape (n_samples, n_x, n_y, n_z)
@@ -22,3 +24,62 @@ def patchify_by_cube(X, cube_size=(20, 20, 20), stride=(20, 20, 20)):
     
     print('Number of patches:', len(patch_masks), 'Patch size:', patch_masks[0][0].shape)
     return patch_masks
+
+
+def patchify_by_atlas(X, atlas_name='juelich'):
+    # X is a 4D array of shape (n_samples, n_x, n_y, n_z)
+    # return a list of patch masks, each patch mask is a list of indices where the mask is 1
+
+    # Fetch the atlas
+    if atlas_name == 'harvard_oxford':
+        atlas = datasets.fetch_atlas_harvard_oxford('cort-maxprob-thr25-2mm')
+    elif atlas_name == 'juelich':
+        atlas = datasets.fetch_atlas_juelich('prob-2mm')
+    else:
+        raise ValueError('Invalid atlas name')
+
+    # Get atlas data
+    atlas_data = get_data(atlas.maps)
+    print('Atlas data shape:', atlas_data.shape)
+    print('Number of labels:', len(np.unique(atlas_data)), 'Labels:', np.unique(atlas_data))
+
+    patch_masks = []
+    for label in np.unique(atlas_data)[1:]:  # start from 1 to exclude background
+        # Create a mask for the current label
+        mask = (atlas_data == label)
+        print(mask.shape)
+        print('Label:', label, 'Number of voxels:', np.sum(mask))
+
+        # if the non-zero elements in the original image is less than 
+        # 10% of the total number of elements in the patch, then skip this patch
+        if np.count_nonzero(X[0][mask]) < 0.1 * np.sum(mask):
+            continue
+
+        # Get the indices where the mask is 1
+        indices = np.where(mask)
+        patch_masks.append(indices)
+
+    print('Number of patches:', len(patch_masks), 'Patch size:', patch_masks[0][0].shape)
+    return patch_masks
+
+
+
+if __name__ == '__main__':
+    import nibabel as nib
+    import matplotlib.pyplot as plt
+
+    # Load the image
+    img = nib.load('data/haxby2001/subj2/preprocessed/swubold.nii')
+
+    # Get the data
+    X = get_data(img)
+    
+    # reshape the data to (n_samples, n_x, n_y, n_z)
+    X = np.transpose(X, (3, 0, 1, 2))
+
+    # Patchify the image
+    patch_masks = patchify_by_atlas(X, atlas_name='juelich')
+
+    # Visualize the first patch
+    plt.imshow(X[0][patch_masks[0]])
+    plt.savefig('patch_example.png')
