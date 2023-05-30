@@ -1,7 +1,8 @@
 import numpy as np
 from nilearn import datasets
 from nilearn.maskers import NiftiLabelsMasker
-from nilearn.image import get_data
+from nilearn.image import get_data, new_img_like
+import nibabel as nib
 
 def patchify_by_cube(X, cube_size=(20, 20, 20), stride=(20, 20, 20)):
     # X is a 4D array of shape (n_samples, n_x, n_y, n_z)
@@ -62,8 +63,30 @@ def patchify_by_atlas(X, atlas_name='juelich'):
     print('Number of patches:', len(patch_masks), 'Patch size:', patch_masks[0][0].shape)
     return patch_masks
 
+def get_top_k_patches(patch_scores, patch_masks, X_train, topk_patches, ref_niimg=None, output_filename=None):
+    print('Top k performance scores:', np.sort(patch_scores)[-topk_patches:])
+    
+    selected_patch_masks_idx = np.argsort(patch_scores)[-topk_patches:]
+    selected_patch_masks = np.array(patch_masks, dtype=object)[selected_patch_masks_idx].tolist()
+    
+    high_performance_voxels_mask = np.zeros(X_train[0].shape)
+    
+    # Save selected patches as a 3D image
+    # The shape of selected_patch_masks is (n_samples, x_indices, y_indices, z_indices)
+    if output_filename:
+        for i, patch_mask in enumerate(selected_patch_masks):
+            # assign value according to the patch score
+            high_performance_voxels_mask[patch_mask[0], patch_mask[1], patch_mask[2]] = patch_scores[selected_patch_masks_idx[i]]
+        # nib.save(nib.Nifti1Image(high_performance_voxels_mask, X_train[1].affine), output_filename)
+        nifti_img = new_img_like(ref_niimg=ref_niimg,
+                                data=high_performance_voxels_mask).to_filename(output_filename)
+    high_performance_voxels_mask = np.zeros(X_train[0].shape)
+        
+    return selected_patch_masks, high_performance_voxels_mask
 
 
+    
+    
 if __name__ == '__main__':
     import nibabel as nib
     import matplotlib.pyplot as plt

@@ -12,7 +12,11 @@ class HaxbyDataLoader():
         self.mask = load_img(mask_file) if mask_file is not None else None
         print('Mask shape:', self.mask.shape if self.mask is not None else None)
         
+        # Specify a image from data_dir as the reference image
+        self.reference_img = load_img(os.path.join(self.data_dir, sorted(os.listdir(self.data_dir))[0]))
+        
         self.X, self.y = self.load_data()
+        
         
     def load_data(self):
         # Each image file name is like: bottle_10.nii.gz, where bottle is the label and 10 is the run number

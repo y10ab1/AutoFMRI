@@ -12,24 +12,22 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import json
 
-from utils.patchify import patchify_by_cube
+from utils.patchify import patchify_by_cube, get_top_k_patches
 from data_loader.data_loaders import HaxbyDataLoader
+
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier as skRF
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, accuracy_score, make_scorer
 from sklearn.preprocessing import LabelEncoder
-
-
-
 from cuml.ensemble import RandomForestClassifier as cuRF
-
 from model.model_gelu_cnn import CNN
-from copy import deepcopy
-
 from skorch import NeuralNetClassifier
 
 from tqdm import tqdm
+from copy import deepcopy
+
+from nilearn.image import new_img_like
 
 # Fix random seed for reproducibility
 def same_seeds(seed):
@@ -98,7 +96,8 @@ def get_model(model_name, args):
 def main(args):
     # get data (3D images and labels)
     le = LabelEncoder()
-    X, y = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject).load_data()
+    fMRIDataLoader = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject)
+    X, y = fMRIDataLoader.load_data()
     y = le.fit_transform(y) # encode labels to integers
     
     # get stage 1 & 2 model
@@ -140,18 +139,24 @@ def main(args):
                                                 cv=args.kfold,
                                                 n_jobs=args.n_jobs).mean())
             
-        # get top k performance patches
-        print('Top k performance scores:', np.sort(patch_scores)[-args.topk_patches:])
-        selected_patch_masks_idx = np.argsort(patch_scores)[-args.topk_patches:] # the indices of the top k performance patches
-        selected_patch_masks = np.array(patch_masks, dtype=object)[selected_patch_masks_idx].tolist() # the top k performance patches
-        high_performance_voxels_mask = np.zeros(X_train[0].shape) # the mask for high performance voxels
+        # get top k performance patches and save the selected patch masks as a 3D image for visualization
+        selected_patch_masks, high_performance_voxels_mask = get_top_k_patches(patch_scores = patch_scores,
+                                                                               patch_masks = patch_masks,
+                                                                               X_train = X_train,
+                                                                               topk_patches = args.topk_patches,
+                                                                               ref_niimg = fMRIDataLoader.reference_img,
+                                                                               output_filename = os.path.join(args.result_dir, f'selected_patch_masks_fold_{idx+1}.nii'))
+        
+        
+
 
         selected_patch_masks_loader = tqdm(selected_patch_masks)
         for patch_mask in selected_patch_masks_loader:
             X_train_patch = X_train[:, patch_mask[0], patch_mask[1], patch_mask[2]] # (n_samples, n_voxels)
             
-
             
+            
+        
             # create a new unfit model for each patch from the same stage 1 model
             model = deepcopy(stage1_model)
             model.fit(X_train_patch, y_train)
@@ -183,10 +188,16 @@ def main(args):
             top_k_shap_values_idx = np.unravel_index(top_k_shap_values_idx, patch_mask[0].shape)
             
             # aquire a mask for these voxels
-            high_performance_voxels_mask[patch_mask[0][top_k_shap_values_idx], 
-                                         patch_mask[1][top_k_shap_values_idx], 
-                                         patch_mask[2][top_k_shap_values_idx]] = 1
-            
+            # retain the voxels with topk_percent_shap SHAP values with its SHAP values
+            # high_performance_voxels_mask[patch_mask[0][top_k_shap_values_idx], 
+            #                              patch_mask[1][top_k_shap_values_idx], 
+            #                              patch_mask[2][top_k_shap_values_idx]] = 1
+            high_performance_voxels_mask[patch_mask[0][top_k_shap_values_idx],
+                                        patch_mask[1][top_k_shap_values_idx],
+                                        patch_mask[2][top_k_shap_values_idx]] = np.mean(mean_abs_shap_values, axis=0)[top_k_shap_values_idx]
+                                         
+            new_img_like(ref_niimg=fMRIDataLoader.reference_img,
+                        data=high_performance_voxels_mask).to_filename(os.path.join(args.result_dir, f'high_performance_voxels_mask_fold_{idx+1}.nii'))
             selected_patch_masks_loader.set_description(f'Fold {idx+1}/{args.kfold}')
         
         
