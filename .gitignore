@@ -110,7 +110,7 @@ result/
 results/
 *.csv
 *.out
-*result*
+*result*/
 
 # editor, os cache directory
 .vscode/
