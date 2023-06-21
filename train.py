@@ -54,9 +54,10 @@ def get_args():
     args.add_argument('--n_jobs', type=int, default=-1, help='Specify the number of jobs for sklearn parallel processing')
     args.add_argument('--n_bins', type=int, default=16, help='Specify the number of bins for cuml parallel processing')
     args.add_argument('--n_streams', type=int, default=8, help='Specify the number of streams for cuml parallel processing')
-    args.add_argument('--topk_patches', type=int, default=5, help='Specify the number of top performance patches')
-    args.add_argument('--topk_percent_shap', type=float, default=0.01, help='Specify the percentage of voxels with top SHAP values', choices=range(0, 1))
+    args.add_argument('--topk_patches', type=float, default=0, help='Specify the number of top performance patches')
+    args.add_argument('--topk_percent_shap', type=float, default=0.01, help='Specify the percentage of voxels with top SHAP values')
     args.add_argument('--cube_size', type=str, default="20 20 20", help='Specify the cube size for patchify in the format: "x y z" for each dimension')
+    args.add_argument('--cube_stride', type=str, default="20 20 20", help='Specify the cube stride for patchify in the format: "x y z" for each dimension')
     args.add_argument('--label_encoder', type=str, default=None, help='Specify the label encoder for inverse transform')
     
 
@@ -71,6 +72,7 @@ def get_args():
     # Post processing for arguments
     parse_args = args.parse_args()
     parse_args.cube_size = tuple(map(int, parse_args.cube_size.split()))
+    parse_args.cube_stride = tuple(map(int, parse_args.cube_stride.split()))
     return parse_args
 
 def get_model(model_name, args):
@@ -98,7 +100,7 @@ def main(args):
     le = LabelEncoder()
     fMRIDataLoader = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject)
     X, y = fMRIDataLoader.load_data()
-    y = le.fit_transform(y) # encode labels to integers
+    y = le.fit_transform(y) # encode labels to integers for pytorch models
     
     # get stage 1 & 2 model
     stage1_model = get_model(args.stage1_model, args)
@@ -108,7 +110,7 @@ def main(args):
     stratified_kfold = StratifiedKFold(n_splits=args.kfold, shuffle=True)
     
     # patchify data
-    patch_masks = patchify_by_cube(X, cube_size=args.cube_size, stride=args.cube_size)
+    patch_masks = patchify_by_cube(X, cube_size=args.cube_size, stride=args.cube_stride)
     
     # create dataframes for saving results
     results_df = pd.DataFrame(columns=['Subject', 'Fold', 'Accuracy', 'Confusion matrix', 'Classification report'])
@@ -143,7 +145,7 @@ def main(args):
         selected_patch_masks, high_performance_voxels_mask = get_top_k_patches(patch_scores = patch_scores,
                                                                                patch_masks = patch_masks,
                                                                                X_train = X_train,
-                                                                               topk_patches = args.topk_patches,
+                                                                               topk_patches = len(patch_scores)*args.topk_patches if args.topk_patches < 1 else args.topk_patches,
                                                                                ref_niimg = fMRIDataLoader.reference_img,
                                                                                output_filename = os.path.join(args.result_dir, f'selected_patch_masks_fold_{idx+1}.nii'))
         

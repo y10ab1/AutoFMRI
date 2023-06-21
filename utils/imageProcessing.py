@@ -18,10 +18,10 @@ def union_images(images):
 
 if __name__ == '__main__':
     # load fMRI images from a directory
-    fmri_dir = 'result-10x10x10-40patches-subj4'
-    fmri_dir = 'result-20x20x20-5patches-subj4'
+    # fmri_dir = 'result-10x10x10-40patches-subj4'
+    fmri_dir = 'icassp-results-0602/icassp_haxby2001_subj5_rf_rf-1'
     file_name_prefix = 'high_performance_voxels_mask'
-    # file_name_prefix = 'selected_patch_masks'
+    file_name_prefix = 'selected_patch_masks'
     fmri_images = []
     for filename in os.listdir(fmri_dir):
         if filename.endswith('.nii') and filename.startswith(file_name_prefix):

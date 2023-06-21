@@ -1,8 +1,12 @@
 import numpy as np
+import nibabel as nib
+import matplotlib.pyplot as plt
+
 from nilearn import datasets
 from nilearn.maskers import NiftiLabelsMasker
-from nilearn.image import get_data, new_img_like
-import nibabel as nib
+from nilearn.image import get_data, new_img_like, resample_img
+
+
 
 def patchify_by_cube(X, cube_size=(20, 20, 20), stride=(20, 20, 20)):
     # X is a 4D array of shape (n_samples, n_x, n_y, n_z)
@@ -27,43 +31,68 @@ def patchify_by_cube(X, cube_size=(20, 20, 20), stride=(20, 20, 20)):
     return patch_masks
 
 
-def patchify_by_atlas(X, atlas_name='juelich'):
+def patchify_by_atlas(X, reference_img, atlas_name='juelich'):
     # X is a 4D array of shape (n_samples, n_x, n_y, n_z)
+    # reference_img is a Nifti1Image object
     # return a list of patch masks, each patch mask is a list of indices where the mask is 1
+    
+    print('Reference image shape (3D):', reference_img.shape)
 
     # Fetch the atlas
     if atlas_name == 'harvard_oxford':
         atlas = datasets.fetch_atlas_harvard_oxford('cort-maxprob-thr25-2mm')
+        
+        # Transform the 3D atlas into a 4D atlas, each 3D volume represents a region
+        atlas_maps = []
+        for label in np.unique(get_data(atlas.maps))[1:]:
+            atlas_maps.append(get_data(atlas.maps) == label)
+        atlas_data = np.stack(atlas_maps, axis=-1)
     elif atlas_name == 'juelich':
         atlas = datasets.fetch_atlas_juelich('prob-2mm')
+        atlas_data = get_data(atlas.maps)
+    elif atlas_name == 'yeo':
+        atlas = datasets.fetch_atlas_yeo_2011()
+        atlas['maps'] = atlas['thick_17']
+        atlas['labels'] = list(np.unique(get_data(atlas['maps'])))
+        
+        atlas_maps = []
+        for label in np.unique(get_data(atlas.maps))[1:]:
+            atlas_maps.append(get_data(atlas.maps)[..., 0] == label)
+        atlas_data = np.stack(atlas_maps, axis=-1)
+        
     else:
         raise ValueError('Invalid atlas name')
 
-    # Get atlas data
-    atlas_data = get_data(atlas.maps)
+    # Resample the atlas to the same affine as the reference image
+    atlas_resampled = resample_img(new_img_like(atlas.maps, atlas_data), 
+                                    target_affine=reference_img.affine, 
+                                    target_shape=reference_img.shape,
+                                    interpolation='nearest')
+    atlas_data = get_data(atlas_resampled)
+
+    print('Regions labels:', atlas.labels, 'Number of regions:', len(atlas.labels))
     print('Atlas data shape:', atlas_data.shape)
-    print('Number of labels:', len(np.unique(atlas_data)), 'Labels:', np.unique(atlas_data))
 
     patch_masks = []
-    for label in np.unique(atlas_data)[1:]:  # start from 1 to exclude background
-        # Create a mask for the current label
-        mask = (atlas_data == label)
-        print(mask.shape)
-        print('Label:', label, 'Number of voxels:', np.sum(mask))
+    for i in range(atlas_data.shape[-1]):  # loop over regions in the 4D atlas
+        # Create a mask for the current region
+        mask = atlas_data[..., i].astype(bool)
+        print('Region:', atlas.labels[i+1], 'Number of voxels:', np.sum(mask))
 
         # if the non-zero elements in the original image is less than 
         # 10% of the total number of elements in the patch, then skip this patch
-        if np.count_nonzero(X[0][mask]) < 0.1 * np.sum(mask):
+        if np.count_nonzero(reference_img.get_fdata()[mask]) < 0.1 * np.sum(mask):
             continue
 
         # Get the indices where the mask is 1
         indices = np.where(mask)
         patch_masks.append(indices)
 
-    print('Number of patches:', len(patch_masks), 'Patch size:', patch_masks[0][0].shape)
+    print('Number of patches:', len(patch_masks))
     return patch_masks
 
 def get_top_k_patches(patch_scores, patch_masks, X_train, topk_patches, ref_niimg=None, output_filename=None):
+    topk_patches = int(topk_patches)
     print('Top k performance scores:', np.sort(patch_scores)[-topk_patches:])
     
     selected_patch_masks_idx = np.argsort(patch_scores)[-topk_patches:]
@@ -89,12 +118,10 @@ def get_top_k_patches(patch_scores, patch_masks, X_train, topk_patches, ref_niim
     
     
 if __name__ == '__main__':
-    import nibabel as nib
-    import matplotlib.pyplot as plt
 
     # Load the image
     img = nib.load('data/haxby2001/subj2/preprocessed/swubold.nii')
-
+    reference_img = img.slicer[..., 0]
     # Get the data
     X = get_data(img)
     
@@ -102,8 +129,11 @@ if __name__ == '__main__':
     X = np.transpose(X, (3, 0, 1, 2))
 
     # Patchify the image
-    patch_masks = patchify_by_atlas(X, atlas_name='juelich')
+    patch_masks = patchify_by_atlas(X, reference_img, atlas_name='yeo')
+    # patch_masks = patchify_by_atlas(X, reference_img, atlas_name='harvard_oxford')
 
-    # Visualize the first patch
-    plt.imshow(X[0][patch_masks[0]])
-    plt.savefig('patch_example.png')
+    # Save the first 3 patch masks as a 3D image
+    for i, patch_mask in enumerate(patch_masks[:40:3]):
+        patch_masks_img = np.zeros(X[0].shape)
+        patch_masks_img[patch_mask[0], patch_mask[1], patch_mask[2]] = 1
+        nib.save(nib.Nifti1Image(patch_masks_img, img.affine), f'patch_mask_{i}.nii')

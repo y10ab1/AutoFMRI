@@ -57,10 +57,11 @@ def get_args():
     args.add_argument('--n_bins', type=int, default=16, help='Specify the number of bins for cuml parallel processing')
     args.add_argument('--n_streams', type=int, default=8, help='Specify the number of streams for cuml parallel processing')
     args.add_argument('--k', type=int, default=5, help='Specify the number of top performance patches')
-    args.add_argument('--k_shap_percent', type=float, default=0.01, help='Specify the percentage of voxels with top SHAP values', choices=range(0, 1))
+    args.add_argument('--k_shap_percent', type=float, default=0.01, help='Specify the percentage of voxels with top SHAP values')
     args.add_argument('--cube_size', type=tuple, default=(20, 20, 20), help='Specify the cube size for patchify')
     args.add_argument('--label_encoder', type=str, default=None, help='Specify the label encoder for inverse transform')
     args.add_argument('--mask_file', type=str, default='data/haxby2001/subj4/mask4_vt.nii', help='Specify the mask file for masking')
+    args.add_argument('--mask_threshold', type=float, default=0.3, help='Specify the threshold for masking')
     
     # CNN hyperparameters
     args.add_argument('--num_classes', type=int, default=8, help='Specify the number of classes for classification')
@@ -96,7 +97,7 @@ def get_model(model_name, args):
 def main(args):
     # get data (3D images and labels)
     le = LabelEncoder()
-    X, y = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject, mask_file=args.mask_file).load_data()
+    X, y = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject, mask_file=args.mask_file, threshold=args.mask_threshold).load_data()
     y = le.fit_transform(y) # encode labels to integers
     X = X.squeeze() # squeeze from (n_samples, 1, 675) to (n_samples, 675)
     

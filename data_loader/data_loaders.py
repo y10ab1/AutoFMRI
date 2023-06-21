@@ -1,4 +1,4 @@
-from nilearn.image import load_img
+from nilearn.image import load_img, binarize_img
 from nilearn.maskers import NiftiMasker
 import os
 import numpy as np
@@ -6,11 +6,21 @@ import numpy as np
 
 class HaxbyDataLoader():
     # Load data from local preprocessed nii.gz files
-    def __init__(self, data_dir, subject, mask_file=None):
+    def __init__(self, data_dir, subject, mask_file=None, threshold=None):
         self.data_dir = data_dir
         self.subject = subject
         self.mask = load_img(mask_file) if mask_file is not None else None
         print('Mask shape:', self.mask.shape if self.mask is not None else None)
+        
+        # if mask is not made of 0s and 1s, threshold it
+        if threshold is not None:
+            self.mask = binarize_img(self.mask, threshold)
+            print('Mask shape after thresholding:', self.mask.shape, 
+                  '0s:', np.sum(self.mask.get_fdata() == 0),
+                    '1s:', np.sum(self.mask.get_fdata() == 1))
+            
+            
+            
         
         # Specify a image from data_dir as the reference image
         self.reference_img = load_img(os.path.join(self.data_dir, sorted(os.listdir(self.data_dir))[0]))
