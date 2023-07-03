@@ -29,6 +29,9 @@ from copy import deepcopy
 
 from nilearn.image import new_img_like
 
+from utils.model import get_model
+
+
 # Fix random seed for reproducibility
 def same_seeds(seed):
 	torch.manual_seed(seed)
@@ -75,24 +78,24 @@ def get_args():
     parse_args.cube_stride = tuple(map(int, parse_args.cube_stride.split()))
     return parse_args
 
-def get_model(model_name, args):
-    if model_name == 'rf':
-        return skRF(n_estimators=100, n_jobs=args.n_jobs)
-    elif model_name == 'cu_rf':
-        return cuRF(n_estimators=100, n_streams=args.n_streams, n_bins=args.n_bins)
-    elif model_name == 'cnn':
-        net = NeuralNetClassifier(module=CNN, 
-                                    module__task='classification', 
-                                    module__num_classes=args.num_classes,
-                                    criterion=torch.nn.CrossEntropyLoss, 
-                                    optimizer=torch.optim.Adam, 
-                                    lr=args.lr,
-                                    max_epochs=args.num_epochs, 
-                                    batch_size=args.batch_size,
-                                    train_split=None, 
-                                    verbose=args.verbose,
-                                    device='cuda' if torch.cuda.is_available() else 'cpu')
-        return net
+# def get_model(model_name, args):
+#     if model_name == 'rf':
+#         return skRF(n_estimators=100, n_jobs=args.n_jobs)
+#     elif model_name == 'cu_rf':
+#         return cuRF(n_estimators=100, n_streams=args.n_streams, n_bins=args.n_bins)
+#     elif model_name == 'cnn':
+#         net = NeuralNetClassifier(module=CNN, 
+#                                     module__task='classification', 
+#                                     module__num_classes=args.num_classes,
+#                                     criterion=torch.nn.CrossEntropyLoss, 
+#                                     optimizer=torch.optim.Adam, 
+#                                     lr=args.lr,
+#                                     max_epochs=args.num_epochs, 
+#                                     batch_size=args.batch_size,
+#                                     train_split=None, 
+#                                     verbose=args.verbose,
+#                                     device='cuda' if torch.cuda.is_available() else 'cpu')
+#         return net
 
 
 def main(args):

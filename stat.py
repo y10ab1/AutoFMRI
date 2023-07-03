@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 from scipy import stats
 import matplotlib.pyplot as plt
 
@@ -8,73 +9,77 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
     # Load the classification reports from the json files
     # cmp_methods = ['cube-10x10x10', 'cube-20x20x20']
-    cmp_methods = ['our_method', 'baseline']
-    # classification_reports = {
-    #     'subject1': {cmp_methods[0]: pd.read_json('result-10x10x10-40patches-subj1/results.json').iloc[-1]['Classification report'],
-    #                  cmp_methods[1]: pd.read_json('icassp-results/icassp_haxby2001_subj1_rf_curf/results.json').iloc[-1]['Classification report']},
-    #     'subject2': {cmp_methods[0]: pd.read_json('result-10x10x10-40patches-subj2/results.json').iloc[-1]['Classification report'],
-    #                     cmp_methods[1]: pd.read_json('icassp-results/icassp_haxby2001_subj2_rf_curf/results.json').iloc[-1]['Classification report']},
-    #     'subject3': {cmp_methods[0]: pd.read_json('result-10x10x10-40patches-subj3/results.json').iloc[-1]['Classification report'],
-    #                     cmp_methods[1]: pd.read_json('icassp-results/icassp_haxby2001_subj3_rf_curf/results.json').iloc[-1]['Classification report']},
-    #     'subject4': {cmp_methods[0]: pd.read_json('result-10x10x10-40patches-subj4/results.json').iloc[-1]['Classification report'],
-    #                     cmp_methods[1]: pd.read_json('icassp-results/icassp_haxby2001_subj4_rf_curf/results.json').iloc[-1]['Classification report']},
-    #     'subject5': {cmp_methods[0]: pd.read_json('result-10x10x10-40patches-subj5/results.json').iloc[-1]['Classification report'],
-    #                     cmp_methods[1]: pd.read_json('icassp-results/icassp_haxby2001_subj5_rf_curf/results.json').iloc[-1]['Classification report']},
-
-    # }
     
+    output_dir = 'stat_results'
+    os.makedirs(output_dir, exist_ok=True)
+    
+    cmp_methods = ['our_method', 'baseline']
     classification_reports = {
-        'subject1-1': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj1_rf_rf-1/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj1_vt_rf-1/results.json').iloc[-1]['Classification report']},
-        # 'subject2-1': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj2_rf_rf-1/results.json').iloc[-1]['Classification report'],
-                    #    cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj2_vt_rf-1/results.json').iloc[-1]['Classification report']},
-        'subject3-1': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj3_rf_rf-1/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj3_vt_rf-1/results.json').iloc[-1]['Classification report']},
-        'subject4-1': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj4_rf_rf-1/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj4_vt_rf-1/results.json').iloc[-1]['Classification report']},
-        'subject5-1': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj5_rf_rf-1/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj5_vt_rf-1/results.json').iloc[-1]['Classification report']},
-        'subject1-2': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj1_rf_rf-2/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj1_vt_rf-2/results.json').iloc[-1]['Classification report']},
-        # 'subject2-2': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj2_rf_rf-2/results.json').iloc[-1]['Classification report'],
-                    #    cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj2_vt_rf-2/results.json').iloc[-1]['Classification report']},
-        'subject3-2': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj3_rf_rf-2/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj3_vt_rf-2/results.json').iloc[-1]['Classification report']},
-        'subject4-2': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj4_rf_rf-2/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj4_vt_rf-2/results.json').iloc[-1]['Classification report']},
-        'subject5-2': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj5_rf_rf-2/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj5_vt_rf-2/results.json').iloc[-1]['Classification report']},
-        'subject1-3': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj1_rf_rf-3/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj1_vt_rf-3/results.json').iloc[-1]['Classification report']},
-        # 'subject2-3': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj2_rf_rf-3/results.json').iloc[-1]['Classification report'],
-                    #    cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj2_vt_rf-3/results.json').iloc[-1]['Classification report']},
-        'subject3-3': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj3_rf_rf-3/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj3_vt_rf-3/results.json').iloc[-1]['Classification report']},
-        'subject4-3': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj4_rf_rf-3/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj4_vt_rf-3/results.json').iloc[-1]['Classification report']},
-        'subject5-3': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj5_rf_rf-3/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj5_vt_rf-3/results.json').iloc[-1]['Classification report']},
-        'subject1-4': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj1_rf_rf-4/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj1_vt_rf-4/results.json').iloc[-1]['Classification report']},
-        # 'subject2-4': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj2_rf_rf-4/results.json').iloc[-1]['Classification report'],
-                    #    cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj2_vt_rf-4/results.json').iloc[-1]['Classification report']},
-        'subject3-4': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj3_rf_rf-4/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj3_vt_rf-4/results.json').iloc[-1]['Classification report']},
-        'subject4-4': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj4_rf_rf-4/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj4_vt_rf-4/results.json').iloc[-1]['Classification report']},
-        'subject5-4': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj5_rf_rf-4/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj5_vt_rf-4/results.json').iloc[-1]['Classification report']},
-        'subject1-5': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj1_rf_rf-5/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj1_vt_rf-5/results.json').iloc[-1]['Classification report']},
-        # 'subject2-5': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj2_rf_rf-5/results.json').iloc[-1]['Classification report'],
-                    #    cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj2_vt_rf-5/results.json').iloc[-1]['Classification report']},
-        'subject3-5': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj3_rf_rf-5/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj3_vt_rf-5/results.json').iloc[-1]['Classification report']},
-        'subject4-5': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj4_rf_rf-5/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj4_vt_rf-5/results.json').iloc[-1]['Classification report']},
-        'subject5-5': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj5_rf_rf-5/results.json').iloc[-1]['Classification report'],
-                       cmp_methods[1]: pd.read_json('icassp-results-0605-maskthreshold005/icassp_haxby2001_subj5_vt_rf-5/results.json').iloc[-1]['Classification report']},
+        'subject1': {cmp_methods[0]: pd.read_json('result-yeo-2patches/subj1/results.json').iloc[-1]['Classification report'],
+                     cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj1_vt_rf-1/results.json').iloc[-1]['Classification report']},
+        'subject2': {cmp_methods[0]: pd.read_json('result-yeo-2patches/subj2/results.json').iloc[-1]['Classification report'],
+                        cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj2_vt_rf-1/results.json').iloc[-1]['Classification report']},
+        'subject3': {cmp_methods[0]: pd.read_json('result-yeo-2patches/subj3/results.json').iloc[-1]['Classification report'],
+                        cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj3_vt_rf-1/results.json').iloc[-1]['Classification report']},
+        'subject4': {cmp_methods[0]: pd.read_json('result-yeo-2patches/subj4/results.json').iloc[-1]['Classification report'],
+                        cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj4_vt_rf-1/results.json').iloc[-1]['Classification report']},
+        'subject5': {cmp_methods[0]: pd.read_json('result-yeo-2patches/subj5/results.json').iloc[-1]['Classification report'],
+                        cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj5_vt_rf-1/results.json').iloc[-1]['Classification report']},
+
     }
+    
+    # classification_reports = {
+    #     'subject1-1': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj1_rf_rf-1/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj1_vt_rf-1/results.json').iloc[-1]['Classification report']},
+    #     # 'subject2-1': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj2_rf_rf-1/results.json').iloc[-1]['Classification report'],
+    #                 #    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj2_vt_rf-1/results.json').iloc[-1]['Classification report']},
+    #     'subject3-1': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj3_rf_rf-1/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj3_vt_rf-1/results.json').iloc[-1]['Classification report']},
+    #     'subject4-1': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj4_rf_rf-1/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj4_vt_rf-1/results.json').iloc[-1]['Classification report']},
+    #     'subject5-1': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj5_rf_rf-1/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj5_vt_rf-1/results.json').iloc[-1]['Classification report']},
+    #     'subject1-2': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj1_rf_rf-2/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj1_vt_rf-2/results.json').iloc[-1]['Classification report']},
+    #     # 'subject2-2': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj2_rf_rf-2/results.json').iloc[-1]['Classification report'],
+    #                 #    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj2_vt_rf-2/results.json').iloc[-1]['Classification report']},
+    #     'subject3-2': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj3_rf_rf-2/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj3_vt_rf-2/results.json').iloc[-1]['Classification report']},
+    #     'subject4-2': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj4_rf_rf-2/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj4_vt_rf-2/results.json').iloc[-1]['Classification report']},
+    #     'subject5-2': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj5_rf_rf-2/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj5_vt_rf-2/results.json').iloc[-1]['Classification report']},
+    #     'subject1-3': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj1_rf_rf-3/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj1_vt_rf-3/results.json').iloc[-1]['Classification report']},
+    #     # 'subject2-3': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj2_rf_rf-3/results.json').iloc[-1]['Classification report'],
+    #                 #    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj2_vt_rf-3/results.json').iloc[-1]['Classification report']},
+    #     'subject3-3': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj3_rf_rf-3/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj3_vt_rf-3/results.json').iloc[-1]['Classification report']},
+    #     'subject4-3': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj4_rf_rf-3/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj4_vt_rf-3/results.json').iloc[-1]['Classification report']},
+    #     'subject5-3': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj5_rf_rf-3/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj5_vt_rf-3/results.json').iloc[-1]['Classification report']},
+    #     'subject1-4': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj1_rf_rf-4/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj1_vt_rf-4/results.json').iloc[-1]['Classification report']},
+    #     # 'subject2-4': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj2_rf_rf-4/results.json').iloc[-1]['Classification report'],
+    #                 #    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj2_vt_rf-4/results.json').iloc[-1]['Classification report']},
+    #     'subject3-4': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj3_rf_rf-4/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj3_vt_rf-4/results.json').iloc[-1]['Classification report']},
+    #     'subject4-4': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj4_rf_rf-4/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj4_vt_rf-4/results.json').iloc[-1]['Classification report']},
+    #     'subject5-4': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj5_rf_rf-4/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj5_vt_rf-4/results.json').iloc[-1]['Classification report']},
+    #     'subject1-5': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj1_rf_rf-5/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj1_vt_rf-5/results.json').iloc[-1]['Classification report']},
+    #     # 'subject2-5': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj2_rf_rf-5/results.json').iloc[-1]['Classification report'],
+    #                 #    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj2_vt_rf-5/results.json').iloc[-1]['Classification report']},
+    #     'subject3-5': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj3_rf_rf-5/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj3_vt_rf-5/results.json').iloc[-1]['Classification report']},
+    #     'subject4-5': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj4_rf_rf-5/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj4_vt_rf-5/results.json').iloc[-1]['Classification report']},
+    #     'subject5-5': {cmp_methods[0]: pd.read_json('icassp-results-0607-cube25/icassp_haxby2001_subj5_rf_rf-5/results.json').iloc[-1]['Classification report'],
+    #                    cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold005/icassp_haxby2001_subj5_vt_rf-5/results.json').iloc[-1]['Classification report']},
+    # }
         
 
     # Choose your performance metric
@@ -129,7 +134,7 @@ if __name__ == '__main__':
 #             break
     
     plt.tight_layout()
-    plt.savefig('icassp-results-0607-cube25/weighted_avg.png')
+    plt.savefig(f'{output_dir}/weighted_avg.png')
     # Clearing the plot
     plt.clf()
     
@@ -171,7 +176,7 @@ if __name__ == '__main__':
 
         plt.tight_layout()
         # Display the plot
-        plt.savefig(f'icassp-results-0607-cube25/{class_name}.png')
+        plt.savefig(f'{output_dir}/{class_name}.png')
         plt.clf()
      
      

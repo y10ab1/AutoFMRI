@@ -24,6 +24,11 @@ conda activate autofmri
 #python train_atlas.py  --data_dir data/haxby2001/subj4/first_level_output --subject 4 --result_dir result-10x10x10-40patches-subj4 &
 #python train_atlas.py  --data_dir data/haxby2001/subj5/first_level_output --subject 5 --result_dir result-10x10x10-40patches-subj5 &
 
-python train_atlas.py --data_dir data/haxby2001/subj4/first_level_output --subject 4 --atlas_name juelich --topk_patches 3 &
+python train_atlas.py --data_dir data/haxby2001/subj1/first_level_output --subject 1 --atlas_name yeo --topk_percent_shap 0.1  --topk_patches 1 --result_dir result-yeo-1patches_0pt1shap/subj1 &
+python train_atlas.py --data_dir data/haxby2001/subj2/first_level_output --subject 2 --atlas_name yeo --topk_percent_shap 0.1  --topk_patches 1 --result_dir result-yeo-1patches_0pt1shap/subj2 &
+python train_atlas.py --data_dir data/haxby2001/subj3/first_level_output --subject 3 --atlas_name yeo --topk_percent_shap 0.1  --topk_patches 1 --result_dir result-yeo-1patches_0pt1shap/subj3 &
+python train_atlas.py --data_dir data/haxby2001/subj4/first_level_output --subject 4 --atlas_name yeo --topk_percent_shap 0.1  --topk_patches 1 --result_dir result-yeo-1patches_0pt1shap/subj4 &
+python train_atlas.py --data_dir data/haxby2001/subj5/first_level_output --subject 5 --atlas_name yeo --topk_percent_shap 0.1  --topk_patches 1 --result_dir result-yeo-1patches_0pt1shap/subj5 &
+
 
 wait
