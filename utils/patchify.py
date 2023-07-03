@@ -59,6 +59,31 @@ def patchify_by_atlas(X, reference_img, atlas_name='juelich'):
         for label in np.unique(get_data(atlas.maps))[1:]:
             atlas_maps.append(get_data(atlas.maps)[..., 0] == label)
         atlas_data = np.stack(atlas_maps, axis=-1)
+    elif atlas_name == 'yeo400':
+        # load atlas file from local atlas folder
+        atlas = {}
+        atlas['maps'] = nib.load('atlas/Schaefer2018_400Parcels_17Networks_order_FSLMNI152_2mm.nii')
+        atlas['labels'] = list(np.unique(get_data(atlas['maps'])))
+        atlas = type('atlas', (object,), atlas)() # convert dict to object
+        
+        # Transform the 3D atlas into a 4D atlas, each 3D volume represents a region
+        atlas_maps = []
+        for label in np.unique(get_data(atlas.maps))[1:]:
+            atlas_maps.append(get_data(atlas.maps) == label)
+        atlas_data = np.stack(atlas_maps, axis=-1)
+
+    elif atlas_name == 'hcp_mmp_sym':
+        # load atlas file from local atlas folder
+        atlas = {}
+        atlas['maps'] = nib.load('atlas/MMP_in_MNI_symmetrical_1.nii')
+        atlas['labels'] = list(np.unique(get_data(atlas['maps'])))
+        atlas = type('atlas', (object,), atlas)() # convert dict to object
+        
+        # Transform the 3D atlas into a 4D atlas, each 3D volume represents a region
+        atlas_maps = []
+        for label in np.unique(get_data(atlas.maps))[1:]:
+            atlas_maps.append(get_data(atlas.maps) == label)
+        atlas_data = np.stack(atlas_maps, axis=-1)
         
     else:
         raise ValueError('Invalid atlas name')
@@ -129,11 +154,18 @@ if __name__ == '__main__':
     X = np.transpose(X, (3, 0, 1, 2))
 
     # Patchify the image
-    patch_masks = patchify_by_atlas(X, reference_img, atlas_name='yeo')
+    patch_masks = patchify_by_atlas(X, reference_img, atlas_name='hcp_mmp_sym')
     # patch_masks = patchify_by_atlas(X, reference_img, atlas_name='harvard_oxford')
 
-    # Save the first 3 patch masks as a 3D image
+    # Save some patch masks as 3D images and also aggregate them  and save into a 3D image
+    aggregate_patch_mask = np.zeros(X[0].shape)
     for i, patch_mask in enumerate(patch_masks[:40:3]):
         patch_masks_img = np.zeros(X[0].shape)
         patch_masks_img[patch_mask[0], patch_mask[1], patch_mask[2]] = 1
         nib.save(nib.Nifti1Image(patch_masks_img, img.affine), f'patch_mask_{i}.nii')
+        
+        aggregate_patch_mask[patch_mask[0], patch_mask[1], patch_mask[2]] = 1
+        
+    nib.save(nib.Nifti1Image(aggregate_patch_mask, img.affine), 'aggregate_patch_mask.nii')
+        
+    
