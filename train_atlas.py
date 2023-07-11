@@ -1,5 +1,4 @@
 import torch
-import skorch
 import sklearn
 import random
 import pandas as pd
@@ -15,14 +14,10 @@ import json
 from utils.patchify import patchify_by_cube, get_top_k_patches, patchify_by_atlas
 from data_loader.data_loaders import HaxbyDataLoader
 
-from sklearn.model_selection import KFold, StratifiedKFold
-from sklearn.ensemble import RandomForestClassifier as skRF
+from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import cross_val_score
-from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, accuracy_score, make_scorer
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, accuracy_score
 from sklearn.preprocessing import LabelEncoder
-from cuml.ensemble import RandomForestClassifier as cuRF
-from model.model_gelu_cnn import CNN
-from skorch import NeuralNetClassifier
 
 from tqdm import tqdm
 from copy import deepcopy

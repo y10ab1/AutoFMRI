@@ -15,16 +15,20 @@ if __name__ == '__main__':
     
     cmp_methods = ['our_method', 'baseline']
     classification_reports = {
-        'subject1': {cmp_methods[0]: pd.read_json('result-yeo-2patches/subj1/results.json').iloc[-1]['Classification report'],
+        'subject1': {cmp_methods[0]: pd.read_json('result-yeo400-0.1patches_0.1shap-2/subj1/results.json').iloc[-1]['Classification report'],
                      cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj1_vt_rf-1/results.json').iloc[-1]['Classification report']},
-        'subject2': {cmp_methods[0]: pd.read_json('result-yeo-2patches/subj2/results.json').iloc[-1]['Classification report'],
-                        cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj2_vt_rf-1/results.json').iloc[-1]['Classification report']},
-        'subject3': {cmp_methods[0]: pd.read_json('result-yeo-2patches/subj3/results.json').iloc[-1]['Classification report'],
-                        cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj3_vt_rf-1/results.json').iloc[-1]['Classification report']},
-        'subject4': {cmp_methods[0]: pd.read_json('result-yeo-2patches/subj4/results.json').iloc[-1]['Classification report'],
-                        cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj4_vt_rf-1/results.json').iloc[-1]['Classification report']},
-        'subject5': {cmp_methods[0]: pd.read_json('result-yeo-2patches/subj5/results.json').iloc[-1]['Classification report'],
-                        cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj5_vt_rf-1/results.json').iloc[-1]['Classification report']},
+        
+        'subject2': {cmp_methods[0]: pd.read_json('result-yeo400-0.1patches_0.1shap-2/subj2/results.json').iloc[-1]['Classification report'],
+                     cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj2_vt_rf-1/results.json').iloc[-1]['Classification report']},
+        
+        'subject3': {cmp_methods[0]: pd.read_json('result-yeo400-0.1patches_0.1shap-2/subj3/results.json').iloc[-1]['Classification report'],
+                     cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj3_vt_rf-1/results.json').iloc[-1]['Classification report']},
+        
+        'subject4': {cmp_methods[0]: pd.read_json('result-yeo400-0.1patches_0.1shap-2/subj4/results.json').iloc[-1]['Classification report'],
+                     cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj4_vt_rf-1/results.json').iloc[-1]['Classification report']},
+        
+        'subject5': {cmp_methods[0]: pd.read_json('result-yeo400-0.1patches_0.1shap-2/subj5/results.json').iloc[-1]['Classification report'],
+                     cmp_methods[1]: pd.read_json('old-results/icassp-results-0605-maskthreshold0pt1/icassp_haxby2001_subj5_vt_rf-1/results.json').iloc[-1]['Classification report']},
 
     }
     
