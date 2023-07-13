@@ -47,7 +47,8 @@ def main(args):
     # get data (3D images and labels)
     le = LabelEncoder()
     fMRIDataLoader = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject)
-    X, y = fMRIDataLoader.load_data()
+    X, y = fMRIDataLoader.load_volume_data()
+    # X, y = fMRIDataLoader.load_data()
     y = le.fit_transform(y) # encode labels to integers for pytorch models
     
     # get stage 1 & 2 model

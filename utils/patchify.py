@@ -2,6 +2,9 @@ import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
 
+from typing import List, Tuple, Optional
+
+
 from nilearn import datasets
 from nilearn.maskers import NiftiLabelsMasker
 from nilearn.image import get_data, new_img_like, resample_img
@@ -31,7 +34,7 @@ def patchify_by_cube(X, cube_size=(20, 20, 20), stride=(20, 20, 20)):
     return patch_masks
 
 
-def patchify_by_atlas(X, reference_img, atlas_name='juelich'):
+def patchify_by_atlas(X, reference_img, atlas_name='juelich', verbose=False):
     # X is a 4D array of shape (n_samples, n_x, n_y, n_z)
     # reference_img is a Nifti1Image object
     # return a list of patch masks, each patch mask is a list of indices where the mask is 1
@@ -102,7 +105,9 @@ def patchify_by_atlas(X, reference_img, atlas_name='juelich'):
     for i in range(atlas_data.shape[-1]):  # loop over regions in the 4D atlas
         # Create a mask for the current region
         mask = atlas_data[..., i].astype(bool)
-        print('Region:', atlas.labels[i+1], 'Number of voxels:', np.sum(mask))
+        
+        if verbose:
+            print('Region:', atlas.labels[i+1], 'Number of voxels:', np.sum(mask))
 
         # if the non-zero elements in the original image is less than 
         # 10% of the total number of elements in the patch, then skip this patch
@@ -113,10 +118,34 @@ def patchify_by_atlas(X, reference_img, atlas_name='juelich'):
         indices = np.where(mask)
         patch_masks.append(indices)
 
-    print('Number of patches:', len(patch_masks))
+    print('Number of candidate patches:', len(patch_masks))
     return patch_masks
 
-def get_top_k_patches(patch_scores, patch_masks, X_train, topk_patches, ref_niimg=None, output_filename=None):
+# def get_top_k_patches(patch_scores, patch_masks, X_train, topk_patches, ref_niimg=None, output_filename=None):
+#     topk_patches = int(topk_patches)
+#     print('Top k performance scores:', np.sort(patch_scores)[-topk_patches:])
+    
+#     selected_patch_masks_idx = np.argsort(patch_scores)[-topk_patches:]
+#     selected_patch_masks = np.array(patch_masks, dtype=object)[selected_patch_masks_idx].tolist()
+    
+#     high_performance_voxels_mask = np.zeros(X_train[0].shape)
+    
+#     # Save selected patches as a 3D image
+#     # The shape of selected_patch_masks is (n_samples, x_indices, y_indices, z_indices)
+#     if output_filename:
+#         for i, patch_mask in enumerate(selected_patch_masks):
+#             # assign value according to the patch score
+#             high_performance_voxels_mask[patch_mask[0], patch_mask[1], patch_mask[2]] = patch_scores[selected_patch_masks_idx[i]]
+#         # nib.save(nib.Nifti1Image(high_performance_voxels_mask, X_train[1].affine), output_filename)
+#         nifti_img = new_img_like(ref_niimg=ref_niimg,
+#                                 data=high_performance_voxels_mask).to_filename(output_filename)
+#     high_performance_voxels_mask = np.zeros(X_train[0].shape)
+        
+#     return selected_patch_masks, high_performance_voxels_mask
+
+
+
+def get_top_k_patches(patch_scores: np.array, patch_masks: np.array, X_train: np.array, topk_patches: int, ref_niimg=None, output_filename: Optional[str]=None) -> Tuple[List, np.array]:
     topk_patches = int(topk_patches)
     print('Top k performance scores:', np.sort(patch_scores)[-topk_patches:])
     
@@ -124,19 +153,34 @@ def get_top_k_patches(patch_scores, patch_masks, X_train, topk_patches, ref_niim
     selected_patch_masks = np.array(patch_masks, dtype=object)[selected_patch_masks_idx].tolist()
     
     high_performance_voxels_mask = np.zeros(X_train[0].shape)
-    
-    # Save selected patches as a 3D image
-    # The shape of selected_patch_masks is (n_samples, x_indices, y_indices, z_indices)
+
     if output_filename:
-        for i, patch_mask in enumerate(selected_patch_masks):
-            # assign value according to the patch score
-            high_performance_voxels_mask[patch_mask[0], patch_mask[1], patch_mask[2]] = patch_scores[selected_patch_masks_idx[i]]
-        # nib.save(nib.Nifti1Image(high_performance_voxels_mask, X_train[1].affine), output_filename)
-        nifti_img = new_img_like(ref_niimg=ref_niimg,
-                                data=high_performance_voxels_mask).to_filename(output_filename)
+        save_selected_patches_as_3D_image(selected_patch_masks, patch_scores, selected_patch_masks_idx, ref_niimg, high_performance_voxels_mask, output_filename)
     high_performance_voxels_mask = np.zeros(X_train[0].shape)
         
     return selected_patch_masks, high_performance_voxels_mask
+
+
+def save_selected_patches_as_3D_image(selected_patch_masks: List, patch_scores: np.array, selected_patch_masks_idx: np.array, ref_niimg, high_performance_voxels_mask: np.array, output_filename: str) -> None:
+    # Save selected patches as a 3D image
+    # The shape of selected_patch_masks is (n_samples, x_indices, y_indices, z_indices)
+    for i, patch_mask in enumerate(selected_patch_masks):
+        # assign value according to the patch score
+        high_performance_voxels_mask[patch_mask[0], patch_mask[1], patch_mask[2]] = patch_scores[selected_patch_masks_idx[i]]
+    nifti_img = new_img_like(ref_niimg=ref_niimg,
+                            data=high_performance_voxels_mask).to_filename(output_filename)
+
+
+
+def integer_to_binary_list(num, length=10):
+    binary_string = bin(num)[2:]  # Convert integer to binary string and remove the '0b' prefix
+    binary_list = [0] * (length - len(binary_string)) + [int(bit) for bit in binary_string]
+    return binary_list
+
+
+def apply_mask(mask, data):
+    masked_data = [x for x, m in zip(data, mask) if m == 1]
+    return masked_data
 
 
 

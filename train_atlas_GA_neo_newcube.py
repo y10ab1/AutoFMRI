@@ -13,13 +13,14 @@ import matplotlib.pyplot as plt
 import json
 
 from sklearn.base import BaseEstimator, ClassifierMixin
-from utils.patchify import patchify_by_cube, get_top_k_patches, patchify_by_atlas
+from utils.patchify import patchify_by_cube, get_top_k_patches, patchify_by_atlas, integer_to_binary_list, apply_mask
 from data_loader.data_loaders import HaxbyDataLoader
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier as skRF
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, accuracy_score, make_scorer
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
 from cuml.ensemble import RandomForestClassifier as cuRF
 from model.model_gelu_cnn import CNN
 from skorch import NeuralNetClassifier
@@ -34,6 +35,8 @@ from utils.config import get_args
 
 from sklearn_genetic import GASearchCV
 from sklearn_genetic.space import Categorical, Integer, Continuous
+from sklearn_genetic.plots import plot_fitness_evolution, plot_search_space
+
 
 
 # Fix random seed for reproducibility
@@ -51,7 +54,7 @@ same_seeds(123)
 
 class MyEstimator(BaseEstimator, ClassifierMixin):
     def __init__(self, data_dir=None, subject=None, stage1_model=None, stage2_model=None, stage1_model_type=None, stage2_model_type=None, kfold=5, atlas_name=None, 
-                 topk_patches=0.2, topk_percent_shap=0.2, n_jobs=1, result_dir='results'):
+                 topk_patches=0.2, topk_percent_shap=0.2, n_jobs=-1, patch_mask_num=1, result_dir='results'):
         self.data_dir = data_dir
         self.subject = subject
         self.stage1_model = stage1_model
@@ -64,39 +67,58 @@ class MyEstimator(BaseEstimator, ClassifierMixin):
         self.topk_percent_shap = topk_percent_shap
         self.n_jobs = n_jobs
         self.result_dir = result_dir
+        self.patch_mask_num = patch_mask_num
+        self.patch_masks = patchify_by_atlas(X, fMRIDataLoader.reference_img, atlas_name=self.atlas_name)
+        
+        self.selected_patch_id = integer_to_binary_list(int(patch_mask_num), length=len(self.patch_masks)) # 1 ~ 2^(number of patches)
+        
+        print('Selected patches:', len(self.selected_patch_id), self.selected_patch_id)
+        
 
     def fit(self, X, y):
         self.le = LabelEncoder()
         y = self.le.fit_transform(y)
 
-        self.patch_masks = patchify_by_atlas(X, fMRIDataLoader.reference_img, atlas_name=self.atlas_name)
 
 
         patch_scores = []
         
-        for patch_mask in self.patch_masks:
-            # get the data with the current patch mask 
-            X_train_patch = X[:, patch_mask[0], patch_mask[1], patch_mask[2]] # (n_samples, n_voxels)
-            
-            # create a new unfit model for each patch from the same stage 1 model
-            model = deepcopy(self.stage1_model)
-            
-            patch_scores.append(cross_val_score(estimator=model, 
-                                                X=X_train_patch,
-                                                y=y,
-                                                cv=self.kfold,
-                                                n_jobs=self.n_jobs).mean())
+        
+        
+        # get the data with the selected patch mask 
+        selected_patch_masks = apply_mask(self.selected_patch_id, self.patch_masks)
+        
+        # create a new unfit model for each patch from the same stage 1 model
+        model = deepcopy(self.stage1_model)
+        
+        # patch_scores.append(cross_val_score(estimator=model, 
+        #                                     X=X,
+        #                                     y=y,
+        #                                     cv=self.kfold,
+        #                                     n_jobs=self.n_jobs).mean())
         
         # get top k performance patches and save the selected patch masks as a 3D image for visualization
-        selected_patch_masks, high_performance_voxels_mask = get_top_k_patches(patch_scores = patch_scores,
-                                                                               patch_masks = self.patch_masks,
-                                                                               X_train = X,
-                                                                               topk_patches = len(patch_scores)*self.topk_patches if self.topk_patches < 1 else self.topk_patches,
-                                                                               ref_niimg = fMRIDataLoader.reference_img,
-                                                                               output_filename = os.path.join(self.result_dir, f'selected_patch_masks_fold_{idx+1}.nii'))
+        # selected_patch_masks, high_performance_voxels_mask = get_top_k_patches(patch_scores = patch_scores,
+        #                                                                        patch_masks = self.patch_masks,
+        #                                                                        X_train = X,
+        #                                                                        topk_patches = len(patch_scores)*self.topk_patches if self.topk_patches < 1 else self.topk_patches,
+        #                                                                        ref_niimg = fMRIDataLoader.reference_img,
+        #                                                                        output_filename = os.path.join(self.result_dir, f'selected_patch_masks_fold_{idx}.nii'))
         
+        # concat the selected patch masks into 1 mask
+        concatenated_indices = (
+            np.concatenate([patch_mask[0] for patch_mask in selected_patch_masks]),
+            np.concatenate([patch_mask[1] for patch_mask in selected_patch_masks]),
+            np.concatenate([patch_mask[2] for patch_mask in selected_patch_masks]),
+        )
         
-        # retrains the stage 1 model on the selected patches
+        print("Voxels selected:", len(concatenated_indices[0]), len(concatenated_indices[1]), len(concatenated_indices[2]))
+        
+        selected_patch_masks = [concatenated_indices]
+
+        # print('selected_patch_masks', selected_patch_masks)            
+        high_performance_voxels_mask = np.zeros(X[0].shape)
+        # retrains the stage 1 model on the selected patches to get high performance voxels (High SHAP values)
         high_performance_voxels_mask = self.run_model_on_patches(selected_patch_masks = selected_patch_masks,
                                                                 high_performance_voxels_mask = high_performance_voxels_mask,
                                                                 X_train = X,
@@ -118,9 +140,6 @@ class MyEstimator(BaseEstimator, ClassifierMixin):
         self.high_performance_voxels_mask = high_performance_voxels_mask
     
         
-        
-        
-        return self
 
     def predict(self, X):
         
@@ -165,25 +184,29 @@ class MyEstimator(BaseEstimator, ClassifierMixin):
         return high_performance_voxels_mask
 
     def run_model_on_patches(self, selected_patch_masks, high_performance_voxels_mask, X_train, y_train, stage1_model):
-        selected_patch_masks_loader = tqdm(selected_patch_masks)
-        for patch_mask in selected_patch_masks_loader:
-            X_train_patch = X_train[:, patch_mask[0], patch_mask[1], patch_mask[2]]
+        # selected_patch_masks_loader = tqdm(selected_patch_masks)
+        # for patch_mask in selected_patch_masks_loader:
+        patch_mask = selected_patch_masks[0]
+        X_train_patch = X_train[:, patch_mask[0], patch_mask[1], patch_mask[2]]
 
-            model = self.fit_model_on_patch(stage1_model, X_train_patch, y_train)
+        model = self.fit_model_on_patch(stage1_model, X_train_patch, y_train)
 
-            shap_values = self.calculate_shap_values(model, X_train_patch, self.stage1_model_type)
-            mean_abs_shap_values = np.mean(np.abs(shap_values), axis=1)
+        shap_values = self.calculate_shap_values(model, X_train_patch, self.stage1_model_type)
+        mean_abs_shap_values = np.mean(np.abs(shap_values), axis=1)
 
-            top_k_shap_values_idx = np.argsort(-np.mean(mean_abs_shap_values, axis=0))[:int(self.topk_percent_shap * X_train_patch.shape[1])]
-            print('Number of voxels with topk_percent_shap SHAP values:', len(top_k_shap_values_idx))
+        top_k_shap_values_idx = np.argsort(-np.mean(mean_abs_shap_values, axis=0))[:int(self.topk_percent_shap * X_train_patch.shape[1])]
+        print('Number of voxels with topk_percent_shap SHAP values:', len(top_k_shap_values_idx))
 
-            top_k_shap_values_idx = np.unravel_index(top_k_shap_values_idx, patch_mask[0].shape)
-            high_performance_voxels_mask = self.get_high_performance_voxels_mask(patch_mask, high_performance_voxels_mask, mean_abs_shap_values, top_k_shap_values_idx)
+        top_k_shap_values_idx = np.unravel_index(top_k_shap_values_idx, patch_mask[0].shape)
+        high_performance_voxels_mask = self.get_high_performance_voxels_mask(patch_mask, high_performance_voxels_mask, mean_abs_shap_values, top_k_shap_values_idx)
 
-            new_img_like(ref_niimg=fMRIDataLoader.reference_img,
-                        data=high_performance_voxels_mask).to_filename(os.path.join(self.result_dir, f'high_performance_voxels_mask_fold_{idx+1}.nii'))
+        # new_img_like(ref_niimg=fMRIDataLoader.reference_img,
+        #             data=high_performance_voxels_mask).to_filename(os.path.join(self.result_dir, f'high_performance_voxels_mask_fold_{idx}.nii'))
+        
+        self.img_high_performance_voxels_mask = new_img_like(ref_niimg=fMRIDataLoader.reference_img,
+                                                        data=high_performance_voxels_mask)
 
-            selected_patch_masks_loader.set_description(f'Fold {idx+1}/{self.kfold}')
+        # selected_patch_masks_loader.set_description(f'Fold {idx}/{self.kfold}')
         
         return high_performance_voxels_mask
 
@@ -203,7 +226,14 @@ if __name__ == '__main__':
     fMRIDataLoader = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject)
     X, y = fMRIDataLoader.load_data()
     
-    stratified_kfold = StratifiedKFold(n_splits=args.kfold, shuffle=True)
+    # train test split
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, stratify=y)
+       
+    # exit()
+    
+    
+    
+    
     
     
     results_df = pd.DataFrame(columns=['Subject', 'Fold', 'Accuracy', 'Confusion matrix', 'Classification report'])
@@ -211,28 +241,71 @@ if __name__ == '__main__':
     total_y_pred = []
 
     
-    for idx, (train_idx, test_idx) in enumerate(stratified_kfold.split(X, y)):
     
+
+
+    stratified_kfold = StratifiedKFold(n_splits=args.kfold, shuffle=True)
+    for idx, (train_idx, test_idx) in enumerate(stratified_kfold.split(X, y), 1):
+    
+        # Define the estimator without specific hyperparameters
         clf = MyEstimator(  data_dir=args.data_dir,
-                            subject=args.subject,
-                            stage1_model=get_model(args.stage1_model, args),
-                            stage2_model=get_model(args.stage2_model, args),
-                            stage1_model_type=args.stage1_model,
-                            stage2_model_type=args.stage2_model,
-                            kfold=args.kfold,
-                            atlas_name=args.atlas_name,
-                            topk_patches=args.topk_patches,
-                            topk_percent_shap=args.topk_percent_shap,
-                            n_jobs=args.n_jobs,
-                            result_dir=args.result_dir)
+                                subject=args.subject,
+                                stage1_model=get_model(args.stage1_model, args),
+                                stage2_model=get_model(args.stage2_model, args),
+                                stage1_model_type=args.stage1_model,
+                                stage2_model_type=args.stage2_model,
+                                kfold=args.kfold,
+                                atlas_name=args.atlas_name,
+                                topk_patches=args.topk_patches,
+                                topk_percent_shap=args.topk_percent_shap,
+                                n_jobs=args.n_jobs,
+                                result_dir=args.result_dir)
         
         X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
         
-        clf.fit(X_train, y_train)
+        # GASearchCV parameters
+        param_grid = {
+            'patch_mask_num': Continuous(1, 2**len(clf.patch_masks)),
+            # 'patch_mask_num': Integer(1, 2**31),
+            'topk_percent_shap': Continuous(0.01, 0.2),
+        }
+        
+        
+
+        # Define the GA search
+        scorer = make_scorer(accuracy_score)
+        ga_search = GASearchCV(estimator=clf, 
+                            param_grid=param_grid, 
+                            scoring=scorer, 
+                            cv=args.kfold,
+                            verbose=True,
+                            generations=1,
+                            population_size=2,
+                            n_jobs=-1,
+        )
+
+        # Fit the GA search to the data
+        ga_search.fit(X_train, y_train)
+
+        # Print the best parameters
+        print(ga_search.best_params_)
+            
+        # Save high performance voxels mask as a 3D image
+        ga_search.best_estimator_.img_high_performance_voxels_mask.to_filename(os.path.join(args.result_dir, f'high_performance_voxels_mask_fold_{idx}.nii'))
+        
+        
+        plot_fitness_evolution(ga_search)
+        plt.tight_layout()
+        plt.savefig(os.path.join(args.result_dir, f'fitness_evolution_fold_{idx}.png'))
+        plt.clf()
+        plot_search_space(ga_search)
+        plt.tight_layout()
+        plt.savefig(os.path.join(args.result_dir, f'search_space_fold_{idx}.png'))
+        plt.clf()
         
         # inverse transform the labels
-        y_pred = clf.predict(X_test)
+        y_pred = ga_search.predict(X_test)
         
         # save the predictions and targets for each fold
         total_y.extend(y_test)
@@ -248,7 +321,7 @@ if __name__ == '__main__':
         
         # save the evaluation results for each fold
         results_df = pd.concat([results_df, pd.DataFrame({'Subject': args.subject,
-                                                            'Fold': [idx + 1],
+                                                            'Fold': [idx],
                                                             'Accuracy': [accuracy_score(y_test, y_pred)],
                                                             'Confusion matrix': [confusion_matrix(y_test, y_pred)],
                                                             'Classification report': [report]})])
@@ -294,4 +367,3 @@ if __name__ == '__main__':
     with open(os.path.join(args.result_dir, 'args.json'), 'w') as f:
         json.dump(args.__dict__, f, indent=2)
         
-    # evolved_estimator = GASearchCV()

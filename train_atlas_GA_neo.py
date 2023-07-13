@@ -20,6 +20,7 @@ from sklearn.ensemble import RandomForestClassifier as skRF
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, accuracy_score, make_scorer
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
 from cuml.ensemble import RandomForestClassifier as cuRF
 from model.model_gelu_cnn import CNN
 from skorch import NeuralNetClassifier
@@ -34,6 +35,7 @@ from utils.config import get_args
 
 from sklearn_genetic import GASearchCV
 from sklearn_genetic.space import Categorical, Integer, Continuous
+from sklearn_genetic.plots import plot_fitness_evolution, plot_search_space
 
 
 # Fix random seed for reproducibility
@@ -93,7 +95,7 @@ class MyEstimator(BaseEstimator, ClassifierMixin):
                                                                                X_train = X,
                                                                                topk_patches = len(patch_scores)*self.topk_patches if self.topk_patches < 1 else self.topk_patches,
                                                                                ref_niimg = fMRIDataLoader.reference_img,
-                                                                               output_filename = os.path.join(self.result_dir, f'selected_patch_masks_fold_{idx+1}.nii'))
+                                                                               output_filename = os.path.join(self.result_dir, f'selected_patch_masks_fold_{idx}.nii'))
         
         
         # retrains the stage 1 model on the selected patches
@@ -118,10 +120,6 @@ class MyEstimator(BaseEstimator, ClassifierMixin):
         self.high_performance_voxels_mask = high_performance_voxels_mask
     
         
-        
-        
-        return self
-
     def predict(self, X):
         
         # apply high performance voxels mask to the test data
@@ -180,10 +178,12 @@ class MyEstimator(BaseEstimator, ClassifierMixin):
             top_k_shap_values_idx = np.unravel_index(top_k_shap_values_idx, patch_mask[0].shape)
             high_performance_voxels_mask = self.get_high_performance_voxels_mask(patch_mask, high_performance_voxels_mask, mean_abs_shap_values, top_k_shap_values_idx)
 
-            new_img_like(ref_niimg=fMRIDataLoader.reference_img,
-                        data=high_performance_voxels_mask).to_filename(os.path.join(self.result_dir, f'high_performance_voxels_mask_fold_{idx+1}.nii'))
+            # new_img_like(ref_niimg=fMRIDataLoader.reference_img,
+            #             data=high_performance_voxels_mask).to_filename(os.path.join(self.result_dir, f'high_performance_voxels_mask_fold_{idx}.nii'))
 
-            selected_patch_masks_loader.set_description(f'Fold {idx+1}/{self.kfold}')
+            self.img_high_performance_voxels_mask = new_img_like(ref_niimg=fMRIDataLoader.reference_img,
+                                                        data=high_performance_voxels_mask)
+            # selected_patch_masks_loader.set_description(f'Fold {idx}/{self.kfold}')
         
         return high_performance_voxels_mask
 
@@ -203,7 +203,11 @@ if __name__ == '__main__':
     fMRIDataLoader = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject)
     X, y = fMRIDataLoader.load_data()
     
-    stratified_kfold = StratifiedKFold(n_splits=args.kfold, shuffle=True)
+    # train test split
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, stratify=y)
+    
+    
+    
     
     
     results_df = pd.DataFrame(columns=['Subject', 'Fold', 'Accuracy', 'Confusion matrix', 'Classification report'])
@@ -211,28 +215,75 @@ if __name__ == '__main__':
     total_y_pred = []
 
     
-    for idx, (train_idx, test_idx) in enumerate(stratified_kfold.split(X, y)):
     
-        clf = MyEstimator(  data_dir=args.data_dir,
-                            subject=args.subject,
-                            stage1_model=get_model(args.stage1_model, args),
-                            stage2_model=get_model(args.stage2_model, args),
-                            stage1_model_type=args.stage1_model,
-                            stage2_model_type=args.stage2_model,
-                            kfold=args.kfold,
-                            atlas_name=args.atlas_name,
-                            topk_patches=args.topk_patches,
-                            topk_percent_shap=args.topk_percent_shap,
-                            n_jobs=args.n_jobs,
-                            result_dir=args.result_dir)
+
+
+    stratified_kfold = StratifiedKFold(n_splits=args.kfold, shuffle=True)
+    
+    for idx, (train_idx, test_idx) in enumerate(stratified_kfold.split(X, y), 1):
+    
+        
         
         X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
         
-        clf.fit(X_train, y_train)
+        # GASearchCV parameters
+        param_grid = {
+            'topk_patches': Integer(1, 10),
+            'topk_percent_shap': Continuous(0.01, 0.2),
+        }
+        
+        # Define the estimator without specific hyperparameters
+        clf = MyEstimator(  data_dir=args.data_dir,
+                                subject=args.subject,
+                                stage1_model=get_model(args.stage1_model, args),
+                                stage2_model=get_model(args.stage2_model, args),
+                                stage1_model_type=args.stage1_model,
+                                stage2_model_type=args.stage2_model,
+                                kfold=args.kfold,
+                                atlas_name=args.atlas_name,
+                                topk_patches=args.topk_patches,
+                                topk_percent_shap=args.topk_percent_shap,
+                                n_jobs=args.n_jobs,
+                                result_dir=args.result_dir)
+
+        # Define the GA search
+        scorer = make_scorer(accuracy_score)
+        ga_search = GASearchCV(estimator=clf, 
+                            param_grid=param_grid, 
+                            scoring=scorer, 
+                            cv=args.kfold,
+                            verbose=True,
+                            generations=4,
+                            population_size=2,
+                            n_jobs=4,
+        )
+
+        # Fit the GA search to the data
+        ga_search.fit(X_train, y_train)
+
+        # Print the best parameters
+        print(ga_search.best_params_)
+            
+        # Test the best model
+        print('Test accuracy:', ga_search.score(X_test, y_test))
         
         # inverse transform the labels
-        y_pred = clf.predict(X_test)
+        y_pred = ga_search.predict(X_test)
+        
+        # Save high performance voxels mask as a 3D image
+        ga_search.best_estimator_.img_high_performance_voxels_mask.to_filename(os.path.join(args.result_dir, f'high_performance_voxels_mask_fold_{idx}.nii'))
+        
+        
+        # plot and save the fitness evolution and search space
+        plot_fitness_evolution(ga_search)
+        plt.tight_layout()
+        plt.savefig(os.path.join(args.result_dir, f'fitness_evolution_fold_{idx}.png'))
+        plt.clf()
+        plot_search_space(ga_search)
+        plt.tight_layout()
+        plt.savefig(os.path.join(args.result_dir, f'search_space_fold_{idx}.png'))
+        plt.clf()
         
         # save the predictions and targets for each fold
         total_y.extend(y_test)
@@ -294,4 +345,3 @@ if __name__ == '__main__':
     with open(os.path.join(args.result_dir, 'args.json'), 'w') as f:
         json.dump(args.__dict__, f, indent=2)
         
-    # evolved_estimator = GASearchCV()

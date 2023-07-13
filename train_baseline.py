@@ -61,7 +61,7 @@ def get_args():
     args.add_argument('--cube_size', type=tuple, default=(20, 20, 20), help='Specify the cube size for patchify')
     args.add_argument('--label_encoder', type=str, default=None, help='Specify the label encoder for inverse transform')
     args.add_argument('--mask_file', type=str, default='data/haxby2001/subj4/mask4_vt.nii', help='Specify the mask file for masking')
-    args.add_argument('--mask_threshold', type=float, default=0.3, help='Specify the threshold for masking')
+    args.add_argument('--mask_threshold', type=float, default=None, help='Specify the threshold for masking')
     
     # CNN hyperparameters
     args.add_argument('--num_classes', type=int, default=8, help='Specify the number of classes for classification')
@@ -97,7 +97,10 @@ def get_model(model_name, args):
 def main(args):
     # get data (3D images and labels)
     le = LabelEncoder()
-    X, y = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject, mask_file=args.mask_file, threshold=args.mask_threshold).load_data()
+    X, y = HaxbyDataLoader(data_dir=args.data_dir, 
+                           subject=args.subject, 
+                           mask_file=args.mask_file, 
+                           threshold=args.mask_threshold).load_volume_data()
     y = le.fit_transform(y) # encode labels to integers
     X = X.squeeze() # squeeze from (n_samples, 1, 675) to (n_samples, 675)
     
