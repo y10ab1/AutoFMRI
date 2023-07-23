@@ -18,11 +18,11 @@ ml cuda/11.7
 
 conda activate autofmri
 
-python train_atlas.py --data_dir data/haxby2001/subj1 --subject 1 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.15patches_0.1shap-volume/subj1 &
-python train_atlas.py --data_dir data/haxby2001/subj2 --subject 2 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.15patches_0.1shap-volume/subj2 &
-python train_atlas.py --data_dir data/haxby2001/subj3 --subject 3 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.15patches_0.1shap-volume/subj3 &
-python train_atlas.py --data_dir data/haxby2001/subj4 --subject 4 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.15patches_0.1shap-volume/subj4 &
-python train_atlas.py --data_dir data/haxby2001/subj5 --subject 5 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.15patches_0.1shap-volume/subj5 &
+python train_atlas.py --data_dir data/haxby2001/subj1 --subject 1 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.1patches_0.05shap-volume/subj1 &
+python train_atlas.py --data_dir data/haxby2001/subj2 --subject 2 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.1patches_0.05shap-volume/subj2 &
+python train_atlas.py --data_dir data/haxby2001/subj3 --subject 3 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.1patches_0.05shap-volume/subj3 &
+python train_atlas.py --data_dir data/haxby2001/subj4 --subject 4 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.1patches_0.05shap-volume/subj4 &
+python train_atlas.py --data_dir data/haxby2001/subj5 --subject 5 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.1patches_0.05shap-volume/subj5 &
 
 
 wait

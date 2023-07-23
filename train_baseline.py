@@ -30,6 +30,8 @@ from copy import deepcopy
 from skorch import NeuralNetClassifier
 
 from tqdm import tqdm
+from utils.config import get_args
+from utils.model import get_model
 
 # Fix random seed for reproducibility
 def same_seeds(seed):
@@ -45,62 +47,12 @@ SEED = 123
 same_seeds(SEED)
 
 
-def get_args():
-    args = argparse.ArgumentParser()
-    args.add_argument('--data_dir', type=str, default='data/haxby2001/subj4/first_level_output')
-    args.add_argument('--result_dir', type=str, default=f'result/{time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())}')
-    args.add_argument('--subject', type=str, default='sub-04')
-    args.add_argument('--stage1_model', type=str, default='rf', help='Specify the stage 1 model', choices=['rf', 'cnn', 'cu_rf'])
-    args.add_argument('--stage2_model', type=str, default='rf', help='Specify the stage 2 model', choices=['rf', 'cnn', 'cu_rf'])
-    args.add_argument('--kfold', type=int, default=4, help='Specify the number of folds for cross validation')
-    args.add_argument('--n_jobs', type=int, default=-1, help='Specify the number of jobs for sklearn parallel processing')
-    args.add_argument('--n_bins', type=int, default=16, help='Specify the number of bins for cuml parallel processing')
-    args.add_argument('--n_streams', type=int, default=8, help='Specify the number of streams for cuml parallel processing')
-    args.add_argument('--k', type=int, default=5, help='Specify the number of top performance patches')
-    args.add_argument('--k_shap_percent', type=float, default=0.01, help='Specify the percentage of voxels with top SHAP values')
-    args.add_argument('--cube_size', type=tuple, default=(20, 20, 20), help='Specify the cube size for patchify')
-    args.add_argument('--label_encoder', type=str, default=None, help='Specify the label encoder for inverse transform')
-    args.add_argument('--mask_file', type=str, default='data/haxby2001/subj4/mask4_vt.nii', help='Specify the mask file for masking')
-    args.add_argument('--mask_threshold', type=float, default=None, help='Specify the threshold for masking')
-    
-    # CNN hyperparameters
-    args.add_argument('--num_classes', type=int, default=8, help='Specify the number of classes for classification')
-    args.add_argument('--num_epochs', type=int, default=100, help='Specify the number of epochs for training')
-    args.add_argument('--batch_size', type=int, default=32, help='Specify the batch size for training')
-    args.add_argument('--lr', type=float, default=0.001, help='Specify the learning rate for training')
-    args.add_argument('--weight_decay', type=float, default=0.0, help='Specify the weight decay for training')
-    args.add_argument('--verbose', type=int, default=1, help='Specify the verbose for training')
-    
-    
-    return args.parse_args()
-
-def get_model(model_name, args):
-    if model_name == 'rf':
-        return skRF(n_estimators=100, n_jobs=args.n_jobs)
-    elif model_name == 'cu_rf':
-        return cuRF(n_estimators=100, n_streams=args.n_streams, n_bins=args.n_bins)
-    elif model_name == 'cnn':
-        net = NeuralNetClassifier(module=CNN, 
-                                    module__task='classification', 
-                                    module__num_classes=args.num_classes,
-                                    criterion=torch.nn.CrossEntropyLoss, 
-                                    optimizer=torch.optim.Adam, 
-                                    lr=args.lr,
-                                    max_epochs=args.num_epochs, 
-                                    batch_size=args.batch_size,
-                                    train_split=None, 
-                                    verbose=args.verbose,
-                                    device='cuda' if torch.cuda.is_available() else 'cpu')
-        return net
-
-
 def main(args):
     # get data (3D images and labels)
     le = LabelEncoder()
     X, y = HaxbyDataLoader(data_dir=args.data_dir, 
                            subject=args.subject, 
-                           mask_file=args.mask_file, 
-                           threshold=args.mask_threshold).load_volume_data()
+                           mask_file=args.mask_file).load_volume_data()
     y = le.fit_transform(y) # encode labels to integers
     X = X.squeeze() # squeeze from (n_samples, 1, 675) to (n_samples, 675)
     
@@ -110,10 +62,12 @@ def main(args):
     # create result dataframe
     results_df = pd.DataFrame(columns=['Subject', 'Accuracy', 'Confusion matrix', 'Classification report'])
     
-    
+    # print('X shape:', X.shape)
+    # print('X', X)
     # cross validation to get the performance of the model
     cv = StratifiedKFold(n_splits=args.kfold, shuffle=True, random_state=SEED)
-    scores = cross_validate(model, X, y, cv=cv, scoring=['accuracy', 'f1_macro'], n_jobs=args.n_jobs, verbose=1)
+    scores = cross_validate(model, X, y, cv=cv, scoring=['accuracy', 'f1_macro'], n_jobs=args.n_jobs, verbose=1, error_score='raise')
+    # scores = cross_validate(model, X, y, cv=cv, scoring=['accuracy', 'f1_macro'], verbose=1, error_score='raise')
     print('Accuracy:', scores['test_accuracy'].mean())
     print('F1:', scores['test_f1_macro'].mean())
         

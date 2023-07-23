@@ -5,6 +5,7 @@ from sklearn.svm import SVR as skSVR
 from cuml.ensemble import RandomForestClassifier as cuRFC
 from cuml.ensemble import RandomForestRegressor as cuRFR
 from skorch import NeuralNetClassifier
+from skorch.callbacks import EarlyStopping
 from model.model_gelu_cnn import CNN
 
 import torch
@@ -34,6 +35,7 @@ def get_model(model_name, args):
                                     batch_size=args.batch_size,
                                     train_split=None, 
                                     verbose=args.verbose,
+                                    callbacks=[EarlyStopping(patience=10)],
                                     device='cuda' if torch.cuda.is_available() else 'cpu')
         return net
     

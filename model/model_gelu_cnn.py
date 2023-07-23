@@ -48,6 +48,9 @@ class CNN(nn.Module):
         self.out = self.regression_head if task != 'classification' else self.classification_head
 
     def forward(self, input_data):
+        # make sure input tensor is float
+        if input_data.dtype != torch.float:
+            input_data = input_data.float()
         x = input_data.unsqueeze(1)
         x = self.conv(x)
         

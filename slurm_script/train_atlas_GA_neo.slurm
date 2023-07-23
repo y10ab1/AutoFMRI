@@ -24,11 +24,11 @@ conda activate autofmri
 #python train_atlas_GA_neo.py  --data_dir data/haxby2001/subj4/first_level_output --subject 4 --result_dir result-10x10x10-40patches-subj4 &
 #python train_atlas_GA_neo.py  --data_dir data/haxby2001/subj5/first_level_output --subject 5 --result_dir result-10x10x10-40patches-subj5 &
 
-# python train_atlas_GA_neo.py --data_dir data/haxby2001/subj1/first_level_output --subject 1 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.15patches_0.1shap/subj1 &
-# python train_atlas_GA_neo.py --data_dir data/haxby2001/subj2/first_level_output --subject 2 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.15patches_0.1shap/subj2 &
-# python train_atlas_GA_neo.py --data_dir data/haxby2001/subj3/first_level_output --subject 3 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.15patches_0.1shap/subj3 &
-python train_atlas_GA_neo.py --data_dir data/haxby2001/subj4/first_level_output --subject 4 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-GAsearch-4gen/subj4 &
-# python train_atlas_GA_neo.py --data_dir data/haxby2001/subj5/first_level_output --subject 5 --atlas_name yeo400 --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo400-0.15patches_0.1shap/subj5 &
+python train_atlas_GA_neo.py --data_dir data/haxby2001/subj1 --subject 1 --atlas_name yeo --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo-GAsearch-4gen/subj1 &
+python train_atlas_GA_neo.py --data_dir data/haxby2001/subj2 --subject 2 --atlas_name yeo --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo-GAsearch-4gen/subj2 &
+python train_atlas_GA_neo.py --data_dir data/haxby2001/subj3 --subject 3 --atlas_name yeo --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo-GAsearch-4gen/subj3 &
+python train_atlas_GA_neo.py --data_dir data/haxby2001/subj4 --subject 4 --atlas_name yeo --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo-GAsearch-4gen/subj4 &
+python train_atlas_GA_neo.py --data_dir data/haxby2001/subj5 --subject 5 --atlas_name yeo --topk_percent_shap 0.1  --topk_patches 0.15 --result_dir result-yeo-GAsearch-4gen/subj5 &
 
 
 wait

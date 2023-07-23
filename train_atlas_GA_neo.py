@@ -16,11 +16,11 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from utils.patchify import patchify_by_cube, get_top_k_patches, patchify_by_atlas
 from data_loader.data_loaders import HaxbyDataLoader
 from sklearn.model_selection import KFold, StratifiedKFold
-from sklearn.ensemble import RandomForestClassifier as skRF
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.ensemble import RandomForestClassifier as skRF
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, accuracy_score, make_scorer
 from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
 from cuml.ensemble import RandomForestClassifier as cuRF
 from model.model_gelu_cnn import CNN
 from skorch import NeuralNetClassifier
@@ -201,7 +201,8 @@ if __name__ == '__main__':
     
     
     fMRIDataLoader = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject)
-    X, y = fMRIDataLoader.load_data()
+    # X, y = fMRIDataLoader.load_data()
+    X, y = fMRIDataLoader.load_volume_data()
     
     # train test split
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, stratify=y)

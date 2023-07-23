@@ -1,4 +1,4 @@
-from nilearn.image import load_img, binarize_img, index_img
+from nilearn.image import load_img, binarize_img, index_img, clean_img
 from nilearn.maskers import NiftiMasker
 import os
 import numpy as np
@@ -71,11 +71,19 @@ class HaxbyDataLoader():
         if self.mask is not None:
             masker = NiftiMasker(mask_img=self.mask, standardize=True)
             fourD_data = masker.fit_transform(fourD_data)
+        else:
+            # Just standardize the data if mask is not specified
+            fourD_data = clean_img(fourD_data)
         print('fourD_data.shape:', fourD_data.shape)
+        
+        
+        
+        
         # volume_data = fourD_data.get_fdata()
         
         # (n_samples, n_x, n_y, n_z) if mask is None, otherwise (n_samples, n_voxels)
-        X = fourD_data if isinstance(fourD_data, np.ndarray) else fourD_data.get_fdata().reshape((-1,) + fourD_data.shape[:3])
+        X = fourD_data if isinstance(fourD_data, np.ndarray) else np.array([index_img(fourD_data, i).get_fdata() for i in range(fourD_data.shape[-1])])
+        # X = fourD_data if isinstance(fourD_data, np.ndarray) else fourD_data.get_fdata().reshape((-1,) + fourD_data.shape[:3])
         
         y = pd.read_csv(os.path.join(self.data_dir, 'labels.txt'), sep=' ', header=None).values[1:, 0] # (n_samples,)
         print('y:', y)
