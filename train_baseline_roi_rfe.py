@@ -67,7 +67,7 @@ def main(args):
     
     
     # create rfe model
-    rfe = RFE(estimator=rf, n_features_to_select=50, step=0.25)
+    rfe = RFE(estimator=rf, n_features_to_select=0.25, step=0.25)
     model = Pipeline([('rfe', rfe), ('model', model)])
 
     # create result dataframe

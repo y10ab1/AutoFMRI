@@ -9,7 +9,7 @@ from skorch.callbacks import EarlyStopping
 from model.model_gelu_cnn import CNN
 
 import torch
-
+import xgboost as xgb
 
 def get_model(model_name, args):
     if model_name == 'rf':
@@ -35,7 +35,10 @@ def get_model(model_name, args):
                                     batch_size=args.batch_size,
                                     train_split=None, 
                                     verbose=args.verbose,
-                                    callbacks=[EarlyStopping(patience=10)],
+                                    callbacks=[EarlyStopping(patience=20, monitor='train_loss')],
                                     device='cuda' if torch.cuda.is_available() else 'cpu')
         return net
-    
+    elif model_name == 'xgb':
+        return xgb.XGBClassifier(n_estimators=100, n_jobs=args.n_jobs)
+    elif model_name == 'xgbr':
+        return xgb.XGBRegressor(n_estimators=100, n_jobs=args.n_jobs)

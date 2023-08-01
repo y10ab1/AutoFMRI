@@ -20,11 +20,27 @@ conda activate autofmri
 
 
 
-CUDA_VISIBLE_DEVICES=0 python train_baseline_roi_rfe.py --stage1_model cnn  --data_dir data/haxby2001/subj1 --result_dir result-baseline-rfe/icassp_haxby2001_subj1_vt_cnn-1 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj1.nii &
-CUDA_VISIBLE_DEVICES=1 python train_baseline_roi_rfe.py --stage1_model cnn  --data_dir data/haxby2001/subj2 --result_dir result-baseline-rfe/icassp_haxby2001_subj2_vt_cnn-1 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj2.nii &
-CUDA_VISIBLE_DEVICES=2 python train_baseline_roi_rfe.py --stage1_model cnn  --data_dir data/haxby2001/subj3 --result_dir result-baseline-rfe/icassp_haxby2001_subj3_vt_cnn-1 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj3.nii &
-CUDA_VISIBLE_DEVICES=3 python train_baseline_roi_rfe.py --stage1_model cnn  --data_dir data/haxby2001/subj4 --result_dir result-baseline-rfe/icassp_haxby2001_subj4_vt_cnn-1 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj4.nii &
-CUDA_VISIBLE_DEVICES=4 python train_baseline_roi_rfe.py --stage1_model cnn  --data_dir data/haxby2001/subj5 --result_dir result-baseline-rfe/icassp_haxby2001_subj5_vt_cnn-1 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj5.nii &
+# CUDA_VISIBLE_DEVICES=0 python train_baseline_roi_rfe.py --stage1_model rf  --data_dir data/haxby2001/subj1 --result_dir result-baseline-rfe/icassp_haxby2001_subj1_vt_rf-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj1.nii &
+# CUDA_VISIBLE_DEVICES=1 python train_baseline_roi_rfe.py --stage1_model rf  --data_dir data/haxby2001/subj2 --result_dir result-baseline-rfe/icassp_haxby2001_subj2_vt_rf-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj2.nii &
+# CUDA_VISIBLE_DEVICES=2 python train_baseline_roi_rfe.py --stage1_model rf  --data_dir data/haxby2001/subj3 --result_dir result-baseline-rfe/icassp_haxby2001_subj3_vt_rf-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj3.nii &
+# CUDA_VISIBLE_DEVICES=3 python train_baseline_roi_rfe.py --stage1_model rf  --data_dir data/haxby2001/subj4 --result_dir result-baseline-rfe/icassp_haxby2001_subj4_vt_rf-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj4.nii &
+# CUDA_VISIBLE_DEVICES=4 python train_baseline_roi_rfe.py --stage1_model rf  --data_dir data/haxby2001/subj5 --result_dir result-baseline-rfe/icassp_haxby2001_subj5_vt_rf-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj5.nii &
+
+# wait
+
+# CUDA_VISIBLE_DEVICES=0 python train_baseline_roi_rfe.py --stage1_model svm  --data_dir data/haxby2001/subj1 --result_dir result-baseline-rfe/icassp_haxby2001_subj1_vt_svm-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj1.nii &
+# CUDA_VISIBLE_DEVICES=1 python train_baseline_roi_rfe.py --stage1_model svm  --data_dir data/haxby2001/subj2 --result_dir result-baseline-rfe/icassp_haxby2001_subj2_vt_svm-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj2.nii &
+# CUDA_VISIBLE_DEVICES=2 python train_baseline_roi_rfe.py --stage1_model svm  --data_dir data/haxby2001/subj3 --result_dir result-baseline-rfe/icassp_haxby2001_subj3_vt_svm-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj3.nii &
+# CUDA_VISIBLE_DEVICES=3 python train_baseline_roi_rfe.py --stage1_model svm  --data_dir data/haxby2001/subj4 --result_dir result-baseline-rfe/icassp_haxby2001_subj4_vt_svm-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj4.nii &
+# CUDA_VISIBLE_DEVICES=4 python train_baseline_roi_rfe.py --stage1_model svm  --data_dir data/haxby2001/subj5 --result_dir result-baseline-rfe/icassp_haxby2001_subj5_vt_svm-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj5.nii &
+
+# wait
+
+CUDA_VISIBLE_DEVICES=0 python train_baseline_roi_rfe.py --stage1_model cnn  --data_dir data/haxby2001/subj1 --result_dir result-baseline-rfe/icassp_haxby2001_subj1_vt_cnn-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj1.nii &
+CUDA_VISIBLE_DEVICES=1 python train_baseline_roi_rfe.py --stage1_model cnn  --data_dir data/haxby2001/subj2 --result_dir result-baseline-rfe/icassp_haxby2001_subj2_vt_cnn-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj2.nii &
+CUDA_VISIBLE_DEVICES=2 python train_baseline_roi_rfe.py --stage1_model cnn  --data_dir data/haxby2001/subj3 --result_dir result-baseline-rfe/icassp_haxby2001_subj3_vt_cnn-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj3.nii &
+CUDA_VISIBLE_DEVICES=3 python train_baseline_roi_rfe.py --stage1_model cnn  --data_dir data/haxby2001/subj4 --result_dir result-baseline-rfe/icassp_haxby2001_subj4_vt_cnn-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj4.nii &
+CUDA_VISIBLE_DEVICES=4 python train_baseline_roi_rfe.py --stage1_model cnn  --data_dir data/haxby2001/subj5 --result_dir result-baseline-rfe/icassp_haxby2001_subj5_vt_cnn-0.25 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj5.nii &
 
 wait
 

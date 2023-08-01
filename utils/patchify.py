@@ -90,6 +90,7 @@ def patchify_by_atlas(X, reference_img, atlas_name='juelich', verbose=False):
         
     else:
         raise ValueError('Invalid atlas name')
+    
 
     # Resample the atlas to the same affine as the reference image
     atlas_resampled = resample_img(new_img_like(atlas.maps, atlas_data), 
@@ -111,11 +112,17 @@ def patchify_by_atlas(X, reference_img, atlas_name='juelich', verbose=False):
 
         # if the non-zero elements in the original image is less than 
         # 10% of the total number of elements in the patch, then skip this patch
-        if np.count_nonzero(reference_img.get_fdata()[mask]) < 0.1 * np.sum(mask):
+        if np.count_nonzero(reference_img.get_fdata()[mask]) <= 0.1 * np.sum(mask):
             continue
 
         # Get the indices where the mask is 1
         indices = np.where(mask)
+        if verbose:
+            print('Indices:', indices)
+        
+        # Also skip the patch if the number of voxels is empty
+        if len(indices[0]) == 0:
+            continue
         patch_masks.append(indices)
 
     print('Number of candidate patches:', len(patch_masks))

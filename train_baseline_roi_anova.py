@@ -65,8 +65,8 @@ def main(args):
     
     
     # create ANOVA decoder
-    feature_selection = SelectPercentile(f_classif, percentile=10)
-    model = Pipeline([("anova", feature_selection), ("svc", model)])
+    feature_selection = SelectPercentile(f_classif, percentile=25)
+    model = Pipeline([("anova", feature_selection), (f"{args.stage1_model}", model)])
 
     
     

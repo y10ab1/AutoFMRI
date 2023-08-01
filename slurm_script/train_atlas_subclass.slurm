@@ -24,11 +24,11 @@ conda activate autofmri
 #python train_atlas_subclass.py  --data_dir data/haxby2001/subj4/first_level_output --subject 4 --result_dir result-10x10x10-40patches-subj4 &
 #python train_atlas_subclass.py  --data_dir data/haxby2001/subj5/first_level_output --subject 5 --result_dir result-10x10x10-40patches-subj5 &
 
-CUDA_VISIBLE_DEVICES=0 python train_atlas_subclass.py --data_dir data/haxby2001/subj1 --subject 1 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-rf-cnn-yeo-RandomSearch/subj1 &
-CUDA_VISIBLE_DEVICES=1 python train_atlas_subclass.py --data_dir data/haxby2001/subj2 --subject 2 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-rf-cnn-yeo-RandomSearch/subj2 &
-CUDA_VISIBLE_DEVICES=2 python train_atlas_subclass.py --data_dir data/haxby2001/subj3 --subject 3 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-rf-cnn-yeo-RandomSearch/subj3 &
-CUDA_VISIBLE_DEVICES=3 python train_atlas_subclass.py --data_dir data/haxby2001/subj4 --subject 4 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-rf-cnn-yeo-RandomSearch/subj4 &
-CUDA_VISIBLE_DEVICES=4 python train_atlas_subclass.py --data_dir data/haxby2001/subj5 --subject 5 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-rf-cnn-yeo-RandomSearch/subj5 &
+CUDA_VISIBLE_DEVICES=0 python train_atlas_subclass.py --data_dir data/haxby2001/subj1 --subject 1 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-rf-cnn-yeo-RandomSearch-earlystop/subj1 &
+CUDA_VISIBLE_DEVICES=1 python train_atlas_subclass.py --data_dir data/haxby2001/subj2 --subject 2 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-rf-cnn-yeo-RandomSearch-earlystop/subj2 &
+CUDA_VISIBLE_DEVICES=2 python train_atlas_subclass.py --data_dir data/haxby2001/subj3 --subject 3 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-rf-cnn-yeo-RandomSearch-earlystop/subj3 &
+CUDA_VISIBLE_DEVICES=3 python train_atlas_subclass.py --data_dir data/haxby2001/subj4 --subject 4 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-rf-cnn-yeo-RandomSearch-earlystop/subj4 &
+CUDA_VISIBLE_DEVICES=4 python train_atlas_subclass.py --data_dir data/haxby2001/subj5 --subject 5 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-rf-cnn-yeo-RandomSearch-earlystop/subj5 &
 
 
 wait
