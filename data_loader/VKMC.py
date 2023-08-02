@@ -135,6 +135,7 @@ class VKMCDataLoader():
         # Load beta maps from data_dir and get labels
         # default data_dir: AutoFMRI/data/datas/LSA_all
         # each beta maps: AutoFMRI/data/datas/LSA_all/sub-001/bass_electronic_018-062-12.nii
+        self.data_dir = 'data/datas/LSA_all'
         
         if self.mask is not None:
             masker = NiftiMasker(mask_img=self.mask, 

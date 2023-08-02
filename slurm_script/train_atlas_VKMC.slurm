@@ -26,30 +26,30 @@ conda activate autofmri
 # # CUDA_VISIBLE_DEVICES=4 python train_atlas_VKMC.py --data_dir data/2021_Reconstruction_dataset --subject sub-006 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-VKMC-rf-rf-yeo-RandomSearch/sub-006 &
 # CUDA_VISIBLE_DEVICES=4 python train_atlas_VKMC.py --data_dir data/2021_Reconstruction_dataset --subject sub-105 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-VKMC-rf-rf-yeo-RandomSearch/sub-105 &
 
-# CUDA_VISIBLE_DEVICES=3 python train_atlas_VKMC.py --data_dir data/2021_Reconstruction_dataset --subject sub-208 --stage1_model cnn --stage2_model rf --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-VKMC-cnn-rf-yeo-RandomSearch/sub-208 &
+CUDA_VISIBLE_DEVICES=3 python train_atlas_VKMC.py --data_dir data/2021_Reconstruction_dataset --subject sub-105 --stage1_model xgb --stage2_model xgb --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC-xgb-xgb-yeo-RandomSearch-volume/sub-105 &
 
-# wait
-
-CUDA_VISIBLE_DEVICES=3 python train_atlas_VKMC.py --data_dir data/2021_Reconstruction_dataset --subject sub-001 \
-                                                                                                        sub-002 \
-                                                                                                        sub-003 \
-                                                                                                        sub-005 \
-                                                                                                        sub-006 \
-                                                                                                        sub-007 \
-                                                                                                        sub-101 \
-                                                                                                        sub-102 \
-                                                                                                        sub-103 \
-                                                                                                        sub-104 \
-                                                                                                        sub-105 \
-                                                                                                        sub-106 \
-                                                                                                        sub-107 \
-                                                                                                        sub-201 \
-                                                                                                        sub-202 \
-                                                                                                        sub-203 \
-                                                                                                        sub-204 \
-                                                                                                        sub-205 \
-                                                                                                        sub-207 \
-                                                                                                        sub-208 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --atlas_name yeo --result_dir result-VKMC-rf-rf-yeo-RandomSearch/sub-multiple &
 wait
+
+# python train_atlas_VKMC_.py --data_dir data/2021_Reconstruction_dataset --subject sub-001 \
+#                                                                                     sub-002 \
+#                                                                                     sub-003 \
+#                                                                                     sub-005 \
+#                                                                                     sub-006 \
+#                                                                                     sub-007 \
+#                                                                                     sub-101 \
+#                                                                                     sub-102 \
+#                                                                                     sub-103 \
+#                                                                                     sub-104 \
+#                                                                                     sub-105 \
+#                                                                                     sub-106 \
+#                                                                                     sub-107 \
+#                                                                                     sub-201 \
+#                                                                                     sub-202 \
+#                                                                                     sub-203 \
+#                                                                                     sub-204 \
+#                                                                                     sub-205 \
+#                                                                                     sub-207 \
+#                                                                                     sub-208 --stage1_model xgb --stage2_model xgb --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC-xgb-xgb-yeo-RandomSearch/sub-multiple &
+# wait
 
 

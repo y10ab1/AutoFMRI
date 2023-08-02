@@ -20,6 +20,14 @@ def get_model(model_name, args):
         return cuRFC(n_estimators=100, n_streams=args.n_streams, n_bins=args.n_bins)
     elif model_name == 'cu_rfr':
         return cuRFR(n_estimators=100, n_streams=args.n_streams, n_bins=args.n_bins)
+    elif model_name == 'xgb':
+        model = xgb.XGBClassifier(n_estimators=100, n_jobs=args.n_jobs, tree_method='gpu_hist', gpu_id=-1)
+        model.set_params(predictor='gpu_predictor')
+        return model
+    elif model_name == 'xgbr':
+        model = xgb.XGBRegressor(n_estimators=100, n_jobs=args.n_jobs, tree_method='gpu_hist', gpu_id=-1)
+        model.set_params(predictor='gpu_predictor')
+        return model
     elif model_name == 'svm':
         return skSVC()
     elif model_name == 'svr':
@@ -38,7 +46,3 @@ def get_model(model_name, args):
                                     callbacks=[EarlyStopping(patience=20, monitor='train_loss')],
                                     device='cuda' if torch.cuda.is_available() else 'cpu')
         return net
-    elif model_name == 'xgb':
-        return xgb.XGBClassifier(n_estimators=100, n_jobs=args.n_jobs)
-    elif model_name == 'xgbr':
-        return xgb.XGBRegressor(n_estimators=100, n_jobs=args.n_jobs)
