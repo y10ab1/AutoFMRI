@@ -3,14 +3,16 @@ from nilearn.maskers import NiftiMasker
 import os
 import numpy as np
 import pandas as pd
+import scipy
 
 class VKMCDataLoader():
     # Load data from local preprocessed nii.gz files
-    def __init__(self, data_dir, subject, mask_file=None, threshold=None, label_type='midi'):
+    def __init__(self, data_dir, subject, mask_file=None, threshold=None, label_type='midi', augment=0):
         self.data_dir = data_dir
         self.subject = [subject] if isinstance(subject, str) else subject # subject can be a string or a list of strings
         self.label_type = label_type  # 'midi' or 'timbre'
         self.mask = load_img(mask_file) if mask_file is not None else None
+        self.augment = augment
         print('Mask shape:', self.mask.shape if self.mask is not None else None)
         
         # if mask is not made of 0s and 1s, threshold it
@@ -125,6 +127,19 @@ class VKMCDataLoader():
         X = np.concatenate(X, axis=0)
         y = np.concatenate(y, axis=0)
         
+        
+        
+        # Using Scipy to interpolate the between volumes to get 1 volume per second
+        if self.augment > 0:
+            zoom_factor = (self.augment, 1) if X.ndim == 2 else (self.augment, 1, 1, 1)
+            X = scipy.ndimage.zoom(X, zoom_factor, order=1)
+            y = np.repeat(y, self.augment)
+            
+        # convert nan to 0 and make sure there is no nan in X
+        X = np.nan_to_num(X)
+        assert np.sum(np.isnan(X)) == 0
+            
+        
 
         print('X.shape:', X.shape, 'y.shape:', y.shape)
         assert X.shape[0] == y.shape[0] # Make sure the number of samples is the same for X and y
@@ -194,14 +209,16 @@ class VKMCDataLoader():
 if __name__ == '__main__':
     # Test the modified VKMCDataLoader with one subject and one run
     data_loader = VKMCDataLoader(
-                                # data_dir='data/2021_Reconstruction_dataset',
-                                data_dir='data/datas/LSA_all',
-                                subject=['sub-001', 'sub-002'],
+                                data_dir='data/2021_Reconstruction_dataset',
+                                # data_dir='data/datas/LSA_all',
+                                # subject=['sub-001', 'sub-002'],
+                                subject=['sub-001'],
                                 mask_file='data/2021_Reconstruction_dataset/masks/ACmask.nii',
+                                augment=True,
     )
     
-    # X, y = data_loader.load_volume_data()
-    X, y = data_loader.load_data()
+    X, y = data_loader.load_volume_data()
+    # X, y = data_loader.load_data()
     
     # print first 30 labels
     print(y[:30])

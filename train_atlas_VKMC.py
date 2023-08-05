@@ -53,6 +53,7 @@ if __name__ == '__main__':
                                     data_dir=args.data_dir,
                                     # data_dir='data/datas/LSA_all',
                                     subject=args.subject,
+                                    augment=args.augment,
     )
     X, y = fMRIDataLoader.load_volume_data()
     # X, y = fMRIDataLoader.load_data()
@@ -185,3 +186,5 @@ if __name__ == '__main__':
     with open(os.path.join(args.result_dir, 'args.json'), 'w') as f:
         json.dump(args.__dict__, f, indent=2)
         
+    # save total classification report as csv file
+    pd.DataFrame(total_classification_report).transpose().to_csv(os.path.join(args.result_dir, 'total_classification_report.csv'))

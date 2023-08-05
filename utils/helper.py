@@ -3,7 +3,7 @@ import torch
 import shap
 
 
-def calculate_shap_values(self, model, X_train_patch, model_type):
+def calculate_shap_values(model, X_train_patch, model_type):
     
     # # sample 10% of the training data
     # sampled_idx = np.random.choice(len(X_train_patch), size=int(0.1 * len(X_train_patch)), replace=False)

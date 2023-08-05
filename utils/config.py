@@ -20,6 +20,7 @@ def get_args():
     args.add_argument('--atlas_name', type=str, default='yeo', help='Specify the atlas name for patchify', choices=['harvard_oxford', 'juelich', 'yeo', 'yeo400', 'hcp_mmp_sym'])
     args.add_argument('--max_patches_ratio', type=float, default=0.5, help='Specify the maximum ratio of patches for training')  
     args.add_argument('--mask_file', type=str, default='data/haxby2001/subj4/mask4_vt.nii', help='Specify the mask file for masking')
+    args.add_argument('--augment', type=int, default=0, help='Specify the augmentation for training')
 
     # CNN hyperparameters
     args.add_argument('--num_classes', type=int, default=9, help='Specify the number of classes for classification')
