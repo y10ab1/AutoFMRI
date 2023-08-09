@@ -65,7 +65,9 @@ class EmoDataLoader():
                     fourD_data_runs[i] = masker.fit_transform(fourD_data_runs[i])
                 else:
                     # Just standardize the data if mask is not specified
-                    fourD_data_runs[i] = clean_img(fourD_data_runs[i]).get_fdata().transpose(3, 0, 1, 2)
+                    # fourD_data_runs[i] = clean_img(fourD_data_runs[i]).get_fdata().transpose(3, 0, 1, 2)
+                    fourD_data_runs[i] = fourD_data_runs[i].get_fdata().transpose(3, 0, 1, 2)
+                    pass
                 print(f'fourD_data_runs[{i}].shape:', fourD_data_runs[i].shape)
             
             
@@ -91,9 +93,21 @@ class EmoDataLoader():
         
         return X, y
         
-        
+def get_tsnr(X):
+    # calculate tsnr for each voxel
+    tsnr = np.mean(X, axis=0) / np.std(X, axis=0)
+    print('tsnr.shape:', tsnr.shape)
+    # exclude the nan/infinite voxels
+    tsnr = tsnr[~np.isnan(tsnr)]
+    tsnr = tsnr[~np.isinf(tsnr)]
+    print('Max tsnr:', np.max(tsnr), 'Min tsnr:', np.min(tsnr) )
+    print('overall tsnr:', np.mean(tsnr))
+    return np.mean(tsnr)
     
 if __name__ == '__main__':
 
     
-    X, y = EmoDataLoader(data_dir='data/fmri-dataset-for-emotion-recognition', subject=[1,2]).load_volume_data()
+    X, y = EmoDataLoader(data_dir='data/fmri-dataset-for-emotion-recognition', subject=[1]).load_volume_data()
+
+    # calculate tsnr
+    tsnr = get_tsnr(X)

@@ -69,11 +69,7 @@ class VKMCDataLoader():
                 else:
                     # Just standardize the data if mask is not specified
                     fourD_data = clean_img(fourD_data)
-                    # resample the data to the same shape as the reference image (ACmask.nii for now)
-                    # fourD_data = resample_img(fourD_data, 
-                    #                             target_affine=self.reference_img.affine,
-                    #                             target_shape=self.reference_img.shape,
-                    #                             interpolation='nearest')
+                    pass
 
                 print('fourD_data.shape:', fourD_data.shape)
         
@@ -150,6 +146,11 @@ class VKMCDataLoader():
         print('X.shape:', X.shape, 'y.shape:', y.shape)
         assert X.shape[0] == y.shape[0], 'The number of samples in X and y are not the same'
 
+        
+        # make sure there is no nan in X
+        X = np.nan_to_num(X)
+        assert np.sum(np.isnan(X)) == 0, 'There are nan values in X'
+        
         return X, y
     
     def load_data(self):
@@ -220,10 +221,10 @@ if __name__ == '__main__':
                                 # subject=['sub-001', 'sub-002'],
                                 subject=['sub-001'],
                                 # mask_file='data/2021_Reconstruction_dataset/masks/ACmask.nii',
-                                augment=2,
+                                augment=1,
     )
     
-    X, y = data_loader.load_volume_data(runs=[1], sessions=[1])
+    X, y = data_loader.load_volume_data()
     # X, y = data_loader.load_data()
     
     # print first 30 labels
@@ -234,3 +235,7 @@ if __name__ == '__main__':
     print('Counts of each label:', np.unique(y, return_counts=True))
     
     print('X.shape:', X.shape, 'y.shape:', y.shape)
+    
+    
+    # calculate tsnr for each voxel
+    tsnr = get_tsnr(X)

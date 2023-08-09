@@ -89,8 +89,7 @@ def main(args):
     # create result dataframe
     results_df = pd.DataFrame(columns=['Subject', 'Accuracy', 'Confusion matrix', 'Classification report'])
     
-    # print('X shape:', X.shape)
-    # print('X', X)
+
     # cross validation to get the performance of the model
     cv = StratifiedKFold(n_splits=args.kfold, shuffle=True, random_state=SEED)
     scores = cross_validate(model, X, y, cv=cv, scoring=['accuracy', 'f1_macro'], n_jobs=args.n_jobs, verbose=1, error_score='raise')

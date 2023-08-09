@@ -161,7 +161,7 @@ if __name__ == '__main__':
     
     plt.tight_layout()
     plt.savefig(os.path.join(args.result_dir, 'confusion_matrix.png')) 
-
+    
     # save args as json file to result directory
     with open(os.path.join(args.result_dir, 'args.json'), 'w') as f:
         json.dump(args.__dict__, f, indent=2)

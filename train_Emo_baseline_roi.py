@@ -92,6 +92,9 @@ def main(args):
     plt.tight_layout()
     plt.savefig(os.path.join(args.result_dir, 'confusion_matrix.png'))    
     
+    # save total classification report as csv file
+    pd.DataFrame(report).transpose().to_csv(os.path.join(args.result_dir, 'total_classification_report.csv'))
+    
 if __name__ == '__main__':
     args = get_args()
     

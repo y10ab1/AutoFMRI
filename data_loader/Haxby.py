@@ -74,6 +74,7 @@ class HaxbyDataLoader():
         else:
             # Just standardize the data if mask is not specified
             fourD_data = clean_img(fourD_data)
+            pass
         print('fourD_data.shape:', fourD_data.shape)
         
         
@@ -98,9 +99,22 @@ class HaxbyDataLoader():
         return X, y
         
         
-    
+def get_tsnr(X):
+    # calculate tsnr for each voxel
+    tsnr = np.mean(X, axis=0) / np.std(X, axis=0)
+    print('tsnr.shape:', tsnr.shape)
+    # exclude the nan/infinite voxels
+    tsnr = tsnr[~np.isnan(tsnr)]
+    tsnr = tsnr[~np.isinf(tsnr)]
+    print('Max tsnr:', np.max(tsnr), 'Min tsnr:', np.min(tsnr) )
+    print('overall tsnr:', np.mean(tsnr))
+    return np.mean(tsnr)
+
 if __name__ == '__main__':
     # X, y = HaxbyDataLoader(data_dir='data/haxby2001/subj4/first_level_output', subject=4).load_data()
     # y = y.astype(np.int)
     
     X, y = HaxbyDataLoader(data_dir='data/haxby2001/subj4', subject=4).load_volume_data()
+
+    # calculate tsnr for each voxel
+    tsnr = get_tsnr(X)
