@@ -1,30 +1,46 @@
 import torch
+import skorch
+import sklearn
 import random
 import pandas as pd
+import argparse
 import numpy as np
 import shap
 import os
 import time
+import seaborn as sns
 import matplotlib.pyplot as plt
 import json
 
-
+from sklearn.base import BaseEstimator, ClassifierMixin
+from utils.patchify import patchify_by_cube, get_top_k_patches, patchify_by_atlas
+from data_loader.data_loaders import HaxbyDataLoader
 from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.ensemble import RandomForestClassifier as skRF
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, accuracy_score, make_scorer
 from sklearn.preprocessing import LabelEncoder
-
+from cuml.ensemble import RandomForestClassifier as cuRF
+from model.model_gelu_cnn import CNN
+from skorch import NeuralNetClassifier
 
 from tqdm import tqdm
+from copy import deepcopy
 
 from nilearn.image import new_img_like
 
 from utils.model import get_model
 from utils.config import get_args
-from data_loader.data_loaders import HaxbyDataLoader
-from data_loader.VKMC import VKMCDataLoader
 
+from sklearn_genetic import GASearchCV
+from sklearn_genetic.space import Categorical, Integer, Continuous
+from sklearn_genetic.plots import plot_fitness_evolution, plot_search_space
+from scipy.stats import uniform
 
 from model.autofmri import AutoEstimator
+
+
 
 # Fix random seed for reproducibility
 def same_seeds(seed):
@@ -37,7 +53,7 @@ def same_seeds(seed):
 	torch.backends.cudnn.benchmark = False
 	torch.backends.cudnn.deterministic = True
  
-same_seeds(123)    
+same_seeds(123)
     
     
 if __name__ == '__main__':
@@ -48,36 +64,15 @@ if __name__ == '__main__':
     os.makedirs(args.result_dir, exist_ok=True)
     
     
-    # fMRIDataLoader = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject)
-    fMRIDataLoader = VKMCDataLoader(
-                                    data_dir=args.data_dir,
-                                    # data_dir='data/datas/LSA_all',
-                                    subject=args.subject,
-                                    augment=args.augment,
-    )
+    fMRIDataLoader = HaxbyDataLoader(data_dir=args.data_dir, subject=args.subject)
     X, y = fMRIDataLoader.load_volume_data()
-    # X, y = fMRIDataLoader.load_data()
     
-    # remove label 'rest'
-    X = X[y != 'rest']
-    y = y[y != 'rest']
+    # train test split
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, stratify=y)
     
-    # group midi numbers 62~86 into 5 classes {low, low-mid, mid, mid-high, high}
-    y = np.array([float(midi) for midi in y])
-    y = np.where(y <= 66, 0, y)
-    y = np.where((y > 66) & (y <= 71), 1, y)
-    y = np.where((y > 71) & (y <= 76), 2, y)
-    y = np.where((y > 76) & (y <= 81), 3, y)
-    y = np.where(y > 81, 4, y)
     
-    # Create a dictionary to map the numeric labels to their string counterparts
-    midi_dict = {0: 'low', 1: 'low-mid', 2: 'mid', 3: 'mid-high', 4: 'high'}
-
-    # Apply the mapping to each element in y
-    y = np.vectorize(midi_dict.get)(y)
-
     
-    print('Count of each class:', np.unique(y, return_counts=True))
+    
     
     results_df = pd.DataFrame(columns=['Subject', 'Fold', 'Accuracy', 'Confusion matrix', 'Classification report'])
     total_y = []
@@ -110,11 +105,8 @@ if __name__ == '__main__':
                                 topk_percent_shap=args.topk_percent_shap,
                                 n_jobs=args.n_jobs,
                                 max_patches_ratio=args.max_patches_ratio,
-                                result_dir=args.result_dir,
-                                ref_img=fMRIDataLoader.reference_img)
+                                result_dir=args.result_dir)
         
-        print('X_train.shape:', X_train.shape, 'y_train.shape:', y_train.shape)
-        print('X_test.shape:', X_test.shape, 'y_test.shape:', y_test.shape)
         clf.fit(X_train, y_train)
     
         
@@ -139,8 +131,8 @@ if __name__ == '__main__':
         report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
         
         # save the evaluation results for each fold
-        results_df = pd.concat([results_df, pd.DataFrame({'Subject': [args.subject],
-                                                            'Fold': [idx],
+        results_df = pd.concat([results_df, pd.DataFrame({'Subject': args.subject,
+                                                            'Fold': [idx + 1],
                                                             'Accuracy': [accuracy_score(y_test, y_pred)],
                                                             'Confusion matrix': [confusion_matrix(y_test, y_pred)],
                                                             'Classification report': [report]})])
@@ -161,7 +153,7 @@ if __name__ == '__main__':
         
         
     # average the evaluation results for all folds
-    results_df = pd.concat([results_df, pd.DataFrame({'Subject': [" ".join(args.subject)],
+    results_df = pd.concat([results_df, pd.DataFrame({'Subject': args.subject,
                                                         'Fold': ['Total'],
                                                         'Accuracy': [results_df['Accuracy'].mean()],
                                                         'Confusion matrix': [results_df['Confusion matrix'].sum()],
@@ -186,5 +178,3 @@ if __name__ == '__main__':
     with open(os.path.join(args.result_dir, 'args.json'), 'w') as f:
         json.dump(args.__dict__, f, indent=2)
         
-    # save total classification report as csv file
-    pd.DataFrame(total_classification_report).transpose().to_csv(os.path.join(args.result_dir, 'total_classification_report.csv'))

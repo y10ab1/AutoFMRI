@@ -26,9 +26,12 @@ class VKMCDataLoader():
         # self.reference_img = load_img('data/2021_Reconstruction_dataset/masks/ACmask.nii')
         self.reference_img = None
         
+        # build a lookup table for the interpolated data
+        self.interpolated_data_set = set()
+                
 
 
-    def load_volume_data(self):
+    def load_volume_data(self, runs=[1, 2, 3, 4, 5, 6, 7, 8], sessions=[1, 2]):
         # Load 4D data from data_dir and get labels
         X, y = [], []
         for subject in self.subject:
@@ -46,7 +49,7 @@ class VKMCDataLoader():
                 run = niifile.split('run-')[1].split('.')[0]
                 session = niifile.split('ses-')[1].split('_')[0]
                 
-                if niifile.endswith('.nii') and session in ['1', '2'] and run in ['1', '2', '3', '4', '5', '6', '7', '8']:
+                if niifile.endswith('.nii') and int(session) in sessions and int(run) in runs:
                     # eg. sub-001_ses-1_run-1.nii the number before .nii is the run number which should be in [1, 8]
                     fourD_data = load_img(os.path.join(self.data_dir, subject, 'func', niifile))
                     
@@ -124,25 +127,28 @@ class VKMCDataLoader():
         # X will be (n_samples, n_features) or (n_samples, n_x, n_y, n_z)
         # y will be (n_samples,)
         
-        X = np.concatenate(X, axis=0)
+        X = np.concatenate(X, axis=0) if len(runs) + len(sessions) > 2 else X # in case there is only one run and one session
         y = np.concatenate(y, axis=0)
         
         
         
         # Using Scipy to interpolate the between volumes to get 1 volume per second
-        if self.augment > 0:
+        if self.augment > 1:
             zoom_factor = (self.augment, 1) if X.ndim == 2 else (self.augment, 1, 1, 1)
             X = scipy.ndimage.zoom(X, zoom_factor, order=1)
             y = np.repeat(y, self.augment)
+            # make a lookup table for the interpolated data
+            self.interpolated_data_set = {x.tobytes() for i, x in enumerate(X) if i % self.augment != 0}
+            
             
         # convert nan to 0 and make sure there is no nan in X
         X = np.nan_to_num(X)
-        assert np.sum(np.isnan(X)) == 0
+        assert np.sum(np.isnan(X)) == 0, 'There are nan values in X'
             
         
 
         print('X.shape:', X.shape, 'y.shape:', y.shape)
-        assert X.shape[0] == y.shape[0] # Make sure the number of samples is the same for X and y
+        assert X.shape[0] == y.shape[0], 'The number of samples in X and y are not the same'
 
         return X, y
     
@@ -213,11 +219,11 @@ if __name__ == '__main__':
                                 # data_dir='data/datas/LSA_all',
                                 # subject=['sub-001', 'sub-002'],
                                 subject=['sub-001'],
-                                mask_file='data/2021_Reconstruction_dataset/masks/ACmask.nii',
-                                augment=True,
+                                # mask_file='data/2021_Reconstruction_dataset/masks/ACmask.nii',
+                                augment=2,
     )
     
-    X, y = data_loader.load_volume_data()
+    X, y = data_loader.load_volume_data(runs=[1], sessions=[1])
     # X, y = data_loader.load_data()
     
     # print first 30 labels

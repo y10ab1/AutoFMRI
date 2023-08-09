@@ -33,6 +33,9 @@ from tqdm import tqdm
 from utils.config import get_args
 from utils.model import get_model
 
+from sklearn.feature_selection import SelectPercentile, f_classif
+from sklearn.pipeline import Pipeline
+
 # Fix random seed for reproducibility
 def same_seeds(seed):
 	torch.manual_seed(seed)
@@ -46,6 +49,27 @@ def same_seeds(seed):
 SEED = 123
 same_seeds(SEED)
 
+def post_process_labels(X, y):
+    # remove label 'rest'
+    X = X[y != 'rest']
+    y = y[y != 'rest']
+    
+    # group midi numbers 62~86 into 5 classes {low, low-mid, mid, mid-high, high}
+    y = np.array([float(midi) for midi in y])
+    y = np.where(y <= 66, 0, y)
+    y = np.where((y > 66) & (y <= 71), 1, y)
+    y = np.where((y > 71) & (y <= 76), 2, y)
+    y = np.where((y > 76) & (y <= 81), 3, y)
+    y = np.where(y > 81, 4, y)
+    
+    # Create a dictionary to map the numeric labels to their string counterparts
+    midi_dict = {0: 'low', 1: 'low-mid', 2: 'mid', 3: 'mid-high', 4: 'high'}
+
+    # Apply the mapping to each element in y
+    y = np.vectorize(midi_dict.get)(y)
+    print('Count of each class:', np.unique(y, return_counts=True))
+    
+    return X, y
 
 def main(args):
     # get data (3D images and labels)
@@ -53,11 +77,14 @@ def main(args):
     X, y = VKMCDataLoader(data_dir=args.data_dir, 
                            subject=args.subject, 
                            mask_file=args.mask_file).load_volume_data()
-    y = le.fit_transform(y) # encode labels to integers
-    X = X.squeeze() # squeeze from (n_samples, 1, 675) to (n_samples, 675)
+    X, y = post_process_labels(X, y)
     
     # get model
     model = get_model(args.stage1_model, args)
+    
+    # create ANOVA decoder
+    feature_selection = SelectPercentile(f_classif, percentile=25)
+    model = Pipeline([("anova", feature_selection), (f"{args.stage1_model}", model)])
 
     # create result dataframe
     results_df = pd.DataFrame(columns=['Subject', 'Accuracy', 'Confusion matrix', 'Classification report'])
