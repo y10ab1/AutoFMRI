@@ -49,8 +49,7 @@ same_seeds(SEED)
 def main(args):
     # get data (3D images and labels)
     le = LabelEncoder()
-    X, y = EmoDataLoader(data_dir=args.data_dir, 
-                           subject=args.subject, 
+    X, y = EmoDataLoader(subject=args.subject, 
                            mask_file=args.mask_file).load_volume_data()
     y = le.fit_transform(y) # encode labels to integers
     X = X.squeeze() # squeeze from (n_samples, 1, 675) to (n_samples, 675)

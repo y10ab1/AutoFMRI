@@ -75,6 +75,7 @@ def main(args):
                            subject=args.subject, 
                            mask_file=args.mask_file).load_volume_data()
     X, y = post_process_labels(X, y)
+    y = le.fit_transform(y)
     
     # get model
     model = get_model(args.stage1_model, args)
@@ -95,7 +96,7 @@ def main(args):
     
     # save classification report and confusion matrix
     y_pred = cross_val_predict(model, X, y, cv=cv, n_jobs=args.n_jobs, verbose=1)
-    report = classification_report(y, y_pred, target_names=le.classes_, output_dict=True)
+    report = classification_report(y, y_pred, target_names=le.classes_, output_dict=True, zero_division=0)
     cm = confusion_matrix(y, y_pred)
     
     # save the evaluation results for all predictions
@@ -108,7 +109,8 @@ def main(args):
     
     
     ConfusionMatrixDisplay(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis], 
-                           display_labels=le.classes_).plot(cmap='Blues', values_format='.2f', xticks_rotation=45)    
+                                    display_labels=np.array(['low', 'low-mid', 'mid', 'mid-high', 'high']), # class names
+                                    ).plot(cmap='Blues', values_format='.2f', xticks_rotation=45)   
     
     plt.tight_layout()
     plt.savefig(os.path.join(args.result_dir, 'confusion_matrix.png'))    

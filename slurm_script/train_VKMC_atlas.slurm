@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=AutoFMRI    # create a short name for your job
+#SBATCH --job-name=VKMC_atlas    # create a short name for your job
 #SBATCH --account=MST111218                     # project id
 #SBATCH --nodes=1 --ntasks-per-node=20           # node count
 #SBATCH --gres=gpu:5                            # number of gpus per node
@@ -19,36 +19,33 @@ ml cuda/11.7
 conda activate autofmri
 
 
-CUDA_VISIBLE_DEVICES=0 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-001 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-001 &
-CUDA_VISIBLE_DEVICES=1 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-002 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-002 &
-CUDA_VISIBLE_DEVICES=2 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-003 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-003 &
-CUDA_VISIBLE_DEVICES=3 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-005 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-005 &
-CUDA_VISIBLE_DEVICES=4 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-006 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-006 &
+CUDA_VISIBLE_DEVICES=0 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-001 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-001 &
+# CUDA_VISIBLE_DEVICES=1 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-002 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-002 &
+# CUDA_VISIBLE_DEVICES=2 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-003 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-003 &
+# CUDA_VISIBLE_DEVICES=3 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-005 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-005 &
+CUDA_VISIBLE_DEVICES=4 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-006 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-006 &
 wait
 
-CUDA_VISIBLE_DEVICES=0 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-007 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-007 &
-CUDA_VISIBLE_DEVICES=1 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-101 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-101 &
-CUDA_VISIBLE_DEVICES=2 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-102 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-102 &
-CUDA_VISIBLE_DEVICES=3 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-103 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-103 &
-CUDA_VISIBLE_DEVICES=4 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-104 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-104 &
+CUDA_VISIBLE_DEVICES=0 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-007 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-007 &
+CUDA_VISIBLE_DEVICES=1 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-101 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-101 &
+CUDA_VISIBLE_DEVICES=2 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-102 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-102 &
+CUDA_VISIBLE_DEVICES=3 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-103 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-103 &
+CUDA_VISIBLE_DEVICES=4 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-104 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-104 &
 wait
 
-CUDA_VISIBLE_DEVICES=0 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-105 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-105 &
-CUDA_VISIBLE_DEVICES=1 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-106 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-106 &
-CUDA_VISIBLE_DEVICES=2 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-107 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-107 &
-CUDA_VISIBLE_DEVICES=3 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-201 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-201 &
-CUDA_VISIBLE_DEVICES=4 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-202 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-202 &
+CUDA_VISIBLE_DEVICES=0 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-105 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-105 &
+CUDA_VISIBLE_DEVICES=1 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-106 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-106 &
+CUDA_VISIBLE_DEVICES=2 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-107 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-107 &
+CUDA_VISIBLE_DEVICES=3 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-201 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-201 &
+CUDA_VISIBLE_DEVICES=4 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-202 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-202 &
 wait
 
-CUDA_VISIBLE_DEVICES=0 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-203 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-203 &
-CUDA_VISIBLE_DEVICES=1 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-204 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-204 &
-CUDA_VISIBLE_DEVICES=2 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-205 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-205 &
-CUDA_VISIBLE_DEVICES=3 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-207 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-207 &
-CUDA_VISIBLE_DEVICES=4 python train_VKMC_atlas.py --data_dir data/2021_Reconstruction_dataset --subject sub-208 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-rf/sub-208 &
+CUDA_VISIBLE_DEVICES=0 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-203 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-203 &
+CUDA_VISIBLE_DEVICES=1 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-204 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-204 &
+CUDA_VISIBLE_DEVICES=2 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-205 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-205 &
+CUDA_VISIBLE_DEVICES=3 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-207 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-207 &
+CUDA_VISIBLE_DEVICES=4 python train_VKMC_atlas.py --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-208 --stage1_model rf --stage2_model cnn --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-VKMC/autofmri-rf-cnn/sub-208 &
 wait
-
-
-
 
 
 

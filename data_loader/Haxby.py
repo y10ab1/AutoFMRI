@@ -116,5 +116,9 @@ if __name__ == '__main__':
     
     X, y = HaxbyDataLoader(data_dir='data/haxby2001/subj4', subject=4).load_volume_data()
 
-    # calculate tsnr for each voxel
-    tsnr = get_tsnr(X)
+    # calculate tsnr for each subject and save it to a csv file
+    for i in range(1, 6):
+        X, y = HaxbyDataLoader(data_dir='data/haxby2001/subj{}'.format(i), subject=i).load_volume_data()
+        tsnr = get_tsnr(X)
+        with open('data/haxby2001/tsnr.csv', 'a') as f:
+            f.write('{},{}\n'.format(i, tsnr))

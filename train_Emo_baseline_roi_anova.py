@@ -52,20 +52,22 @@ same_seeds(SEED)
 def main(args):
     # get data (3D images and labels)
     le = LabelEncoder()
-    X, y = EmoDataLoader(data_dir=args.data_dir, 
-                           subject=args.subject, 
+    X, y = EmoDataLoader(  subject=args.subject, 
                            mask_file=args.mask_file).load_volume_data()
     y = le.fit_transform(y) # encode labels to integers
     X = X.squeeze() # squeeze from (n_samples, 1, 675) to (n_samples, 675)
     
     # get model
     model = get_model(args.stage1_model, args)
+    
+    # create ANOVA decoder
+    feature_selection = SelectPercentile(f_classif, percentile=25)
+    model = Pipeline([("anova", feature_selection), (f"{args.stage2_model}", model)])
 
     # create result dataframe
     results_df = pd.DataFrame(columns=['Subject', 'Accuracy', 'Confusion matrix', 'Classification report'])
     
-    # print('X shape:', X.shape)
-    # print('X', X)
+
     # cross validation to get the performance of the model
     cv = StratifiedKFold(n_splits=args.kfold, shuffle=True, random_state=SEED)
     scores = cross_validate(model, X, y, cv=cv, scoring=['accuracy', 'f1_macro'], n_jobs=args.n_jobs, verbose=1, error_score='raise')

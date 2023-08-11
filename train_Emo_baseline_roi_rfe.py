@@ -52,14 +52,18 @@ same_seeds(SEED)
 def main(args):
     # get data (3D images and labels)
     le = LabelEncoder()
-    X, y = EmoDataLoader(data_dir=args.data_dir, 
-                           subject=args.subject, 
+    X, y = EmoDataLoader(  subject=args.subject, 
                            mask_file=args.mask_file).load_volume_data()
     y = le.fit_transform(y) # encode labels to integers
     X = X.squeeze() # squeeze from (n_samples, 1, 675) to (n_samples, 675)
     
     # get model
-    model = get_model(args.stage1_model, args)
+    rf = get_model(args.stage1_model, args)
+    model = get_model(args.stage2_model, args)
+    
+    # create rfe model
+    rfe = RFE(estimator=rf, n_features_to_select=0.25, step=0.25)
+    model = Pipeline([('rfe', rfe), ('model', model)])
 
     # create result dataframe
     results_df = pd.DataFrame(columns=['Subject', 'Accuracy', 'Confusion matrix', 'Classification report'])
@@ -69,7 +73,6 @@ def main(args):
     # cross validation to get the performance of the model
     cv = StratifiedKFold(n_splits=args.kfold, shuffle=True, random_state=SEED)
     scores = cross_validate(model, X, y, cv=cv, scoring=['accuracy', 'f1_macro'], n_jobs=args.n_jobs, verbose=1, error_score='raise')
-    # scores = cross_validate(model, X, y, cv=cv, scoring=['accuracy', 'f1_macro'], verbose=1, error_score='raise')
     print('Accuracy:', scores['test_accuracy'].mean())
     print('F1:', scores['test_f1_macro'].mean())
         

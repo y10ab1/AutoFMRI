@@ -1,4 +1,5 @@
-from nilearn.image import load_img, binarize_img, index_img, clean_img
+from nilearn.image import load_img, binarize_img, index_img, clean_img, new_img_like
+from nilearn.masking import compute_epi_mask
 from nilearn.maskers import NiftiMasker
 import os
 import numpy as np
@@ -7,7 +8,7 @@ from collections import defaultdict
 
 class EmoDataLoader():
     # Load data from local preprocessed nii.gz files
-    def __init__(self, data_dir='data/fmri-dataset-for-emotion-recognition', subject=[1], mask_file=None, threshold=None, runs=None):
+    def __init__(self, data_dir='data/fmri-dataset-for-emotion-recognition', subject=[1], mask_file=None, threshold=0.9, runs=None):
         self.data_dir = data_dir
         self.subject = [int(sub) for sub in subject] if isinstance(subject, list) else [int(subject)]
         self.runs = runs if runs is not None else [1, 2, 3, 4, 5]
@@ -15,7 +16,7 @@ class EmoDataLoader():
         print('Mask shape:', self.mask.shape if self.mask is not None else None)
         
         # if mask is not made of 0s and 1s, threshold it
-        if threshold is not None:
+        if threshold is not None and self.mask is not None:
             self.mask = binarize_img(self.mask, threshold)
             
             print('Mask shape after thresholding:', self.mask.shape, 
@@ -106,8 +107,26 @@ def get_tsnr(X):
     
 if __name__ == '__main__':
 
-    
-    X, y = EmoDataLoader(data_dir='data/fmri-dataset-for-emotion-recognition', subject=[1]).load_volume_data()
+    fMRIDataLoader = EmoDataLoader(data_dir='data/fmri-dataset-for-emotion-recognition', subject=[1])
+    X, y = fMRIDataLoader.load_volume_data()
+
+
 
     # calculate tsnr
     tsnr = get_tsnr(X)
+    
+    
+    # save epi mask
+    whole_brain_mask = compute_epi_mask(fMRIDataLoader.reference_img)
+    whole_brain_mask.to_filename('data/whole_brain_mask.nii')
+    
+    # calculate tsnr for each subject and save it to a csv file
+    import pandas as pd
+    df = pd.DataFrame(columns=['subject', 'tsnr'])
+    for subj in range(1, 6):
+        data_loader = EmoDataLoader(data_dir='data/fmri-dataset-for-emotion-recognition', subject=[1])
+        X, y = data_loader.load_volume_data()
+        tsnr = get_tsnr(X)
+        df = df.append({'subject': subj, 'tsnr': tsnr}, ignore_index=True)
+        
+    df.to_csv('data/2021_Reconstruction_dataset/tsnr.csv', index=False)

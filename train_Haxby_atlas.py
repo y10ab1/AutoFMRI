@@ -105,6 +105,7 @@ if __name__ == '__main__':
                                 topk_percent_shap=args.topk_percent_shap,
                                 n_jobs=args.n_jobs,
                                 max_patches_ratio=args.max_patches_ratio,
+                                ref_img=fMRIDataLoader.reference_img,
                                 result_dir=args.result_dir)
         
         clf.fit(X_train, y_train)

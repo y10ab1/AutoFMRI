@@ -1,5 +1,7 @@
-from nilearn.image import load_img, binarize_img, index_img, clean_img
+from nilearn.image import load_img, binarize_img, index_img, clean_img, new_img_like
 from nilearn.maskers import NiftiMasker
+from nilearn.masking import compute_epi_mask
+
 import os
 import numpy as np
 import pandas as pd
@@ -103,5 +105,9 @@ class HaxbyDataLoader():
 if __name__ == '__main__':
     # X, y = HaxbyDataLoader(data_dir='data/haxby2001/subj4/first_level_output', subject=4).load_data()
     # y = y.astype(np.int)
-    
-    X, y = HaxbyDataLoader(data_dir='data/haxby2001/subj4', subject=4).load_volume_data()
+    fMRIDataLoader = HaxbyDataLoader(data_dir='data/haxby2001/subj4', subject=4)
+    X, y = fMRIDataLoader.load_volume_data()
+
+    # save epi mask
+    whole_brain_mask = compute_epi_mask(fMRIDataLoader.reference_img)
+    whole_brain_mask.to_filename('data/whole_brain_mask.nii')

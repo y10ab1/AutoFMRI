@@ -49,7 +49,7 @@ class VKMCDataLoader():
                 run = niifile.split('run-')[1].split('.')[0]
                 session = niifile.split('ses-')[1].split('_')[0]
                 
-                if niifile.endswith('.nii') and int(session) in sessions and int(run) in runs:
+                if niifile.endswith('.nii') and session in list(map(str, sessions)) and run in list(map(str, runs)):
                     # eg. sub-001_ses-1_run-1.nii the number before .nii is the run number which should be in [1, 8]
                     fourD_data = load_img(os.path.join(self.data_dir, subject, 'func', niifile))
                     
@@ -211,31 +211,54 @@ class VKMCDataLoader():
             
         return X, y
         
-        
+
+def get_tsnr(X):
+    # calculate tsnr for each voxel
+    tsnr = np.mean(X, axis=0) / np.std(X, axis=0)
+    print('tsnr.shape:', tsnr.shape)
+    # exclude the nan/infinite voxels
+    tsnr = tsnr[~np.isnan(tsnr)]
+    tsnr = tsnr[~np.isinf(tsnr)]
+    print('Max tsnr:', np.max(tsnr), 'Min tsnr:', np.min(tsnr) )
+    print('overall tsnr:', np.mean(tsnr))
+    return np.mean(tsnr)
     
 if __name__ == '__main__':
     # Test the modified VKMCDataLoader with one subject and one run
-    data_loader = VKMCDataLoader(
+    # data_loader = VKMCDataLoader(
+    #                             data_dir='data/2021_Reconstruction_dataset',
+    #                             # data_dir='data/datas/LSA_all',
+    #                             # subject=['sub-001', 'sub-002'],
+    #                             subject=['sub-001'],
+    #                             # mask_file='data/2021_Reconstruction_dataset/masks/ACmask.nii',
+    #                             augment=1,
+    # )
+    
+    # X, y = data_loader.load_volume_data(runs=[1], sessions=[1])
+    # # X, y = data_loader.load_data()
+    
+    # # print first 30 labels
+    # print(y[:30])
+    
+    # # count the number of labels
+    # # print('Number of labels:', len(np.unique(y)))
+    # print('Counts of each label:', np.unique(y, return_counts=True))
+    
+    # print('X.shape:', X.shape, 'y.shape:', y.shape)
+    
+    
+    # calculate tsnr for each subject and save it to a csv file
+    import pandas as pd
+    df = pd.DataFrame(columns=['subject', 'tsnr'])
+    for subj in ['sub-001',  'sub-003',  'sub-006',  'sub-101',  'sub-103',  'sub-105',  'sub-107',  'sub-202',  'sub-204',  'sub-207',
+'sub-002',  'sub-005',  'sub-007',  'sub-102',  'sub-104',  'sub-106',  'sub-201',  'sub-203',  'sub-205',  'sub-208',]:
+        data_loader = VKMCDataLoader(
                                 data_dir='data/2021_Reconstruction_dataset',
-                                # data_dir='data/datas/LSA_all',
-                                # subject=['sub-001', 'sub-002'],
-                                subject=['sub-001'],
-                                # mask_file='data/2021_Reconstruction_dataset/masks/ACmask.nii',
+                                subject=[subj],
                                 augment=1,
-    )
-    
-    X, y = data_loader.load_volume_data()
-    # X, y = data_loader.load_data()
-    
-    # print first 30 labels
-    print(y[:30])
-    
-    # count the number of labels
-    # print('Number of labels:', len(np.unique(y)))
-    print('Counts of each label:', np.unique(y, return_counts=True))
-    
-    print('X.shape:', X.shape, 'y.shape:', y.shape)
-    
-    
-    # calculate tsnr for each voxel
-    tsnr = get_tsnr(X)
+        )
+        X, y = data_loader.load_volume_data()
+        tsnr = get_tsnr(X)
+        df = df.append({'subject': subj, 'tsnr': tsnr}, ignore_index=True)
+        
+    df.to_csv('data/2021_Reconstruction_dataset/tsnr.csv', index=False)

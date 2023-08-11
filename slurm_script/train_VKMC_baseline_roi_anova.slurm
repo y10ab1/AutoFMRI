@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=AutoFMRI_icassp_5subjects_2-5runs    # create a short name for your job
+#SBATCH --job-name=VKMC_baseline_roi_anova    # create a short name for your job
 #SBATCH --account=MST111218                     # project id
 #SBATCH --nodes=1 --ntasks-per-node=4           # node count
 #SBATCH --gres=gpu:5                            # number of gpus per node
@@ -20,34 +20,34 @@ conda activate autofmri
 
 
 
-CUDA_VISIBLE_DEVICES=0 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj1 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-001 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=1 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj2 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-002 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=2 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj3 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-003 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=3 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj4 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-005 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=4 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj5 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-006 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=0 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-001 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-001 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=1 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-002 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-002 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=2 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-003 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-003 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=3 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-005 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-005 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=4 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-006 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-006 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
 
 wait
 
-CUDA_VISIBLE_DEVICES=0 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj1 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-007 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=1 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj2 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-101 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=2 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj3 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-102 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=3 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj4 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-103 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=4 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj5 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-104 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=0 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-007 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-007 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=1 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-101 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-101 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=2 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-102 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-102 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=3 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-103 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-103 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=4 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-104 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-104 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
 
 wait
 
-CUDA_VISIBLE_DEVICES=0 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj1 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-105 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=1 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj2 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-106 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=2 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj3 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-107 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=3 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj4 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-201 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=4 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj5 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-202 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=0 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-105 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-105 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=1 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-106 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-106 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=2 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-107 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-107 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=3 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-201 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-201 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=4 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-202 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-202 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
 
 wait
 
-CUDA_VISIBLE_DEVICES=0 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj1 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-203 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=1 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj2 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-204 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=2 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj3 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-205 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=3 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj4 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-207 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
-CUDA_VISIBLE_DEVICES=4 python train_VKMC_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj5 --result_dir result-VKMC/baseline-roi-anova-vt-rf/sub-208 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=0 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-203 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-203 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=1 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-204 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-204 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=2 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-205 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-205 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=3 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-207 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-207 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
+CUDA_VISIBLE_DEVICES=4 python train_VKMC_baseline_roi_anova.py --stage2_model cnn --num_classes 5 --data_dir data/2021_Reconstruction_dataset --subject sub-208 --result_dir result-VKMC/baseline-roi-anova-ac-cnn/sub-208 --mask_file data/2021_Reconstruction_dataset/masks/ACmask.nii &
 
 wait
