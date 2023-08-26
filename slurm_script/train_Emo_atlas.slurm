@@ -20,13 +20,13 @@ conda activate autofmri
 
 
 
-# CUDA_VISIBLE_DEVICES=0 python train_Emo_atlas.py --subject 1 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-Emo/autofmri-rf-rf/subj1 &
-# CUDA_VISIBLE_DEVICES=1 python train_Emo_atlas.py --subject 2 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-Emo/autofmri-rf-rf/subj2 &
-# CUDA_VISIBLE_DEVICES=2 python train_Emo_atlas.py --subject 3 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-Emo/autofmri-rf-rf/subj3 &
-# CUDA_VISIBLE_DEVICES=3 python train_Emo_atlas.py --subject 4 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-Emo/autofmri-rf-rf/subj4 &
-# CUDA_VISIBLE_DEVICES=4 python train_Emo_atlas.py --subject 5 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-Emo/autofmri-rf-rf/subj5 &
+CUDA_VISIBLE_DEVICES=0 python train_Emo_atlas.py --subject 1 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-Emo/autofmri-rf-rf/subj1 &
+CUDA_VISIBLE_DEVICES=1 python train_Emo_atlas.py --subject 2 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-Emo/autofmri-rf-rf/subj2 &
+CUDA_VISIBLE_DEVICES=2 python train_Emo_atlas.py --subject 3 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-Emo/autofmri-rf-rf/subj3 &
+CUDA_VISIBLE_DEVICES=3 python train_Emo_atlas.py --subject 4 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-Emo/autofmri-rf-rf/subj4 &
+CUDA_VISIBLE_DEVICES=4 python train_Emo_atlas.py --subject 5 --stage1_model rf --stage2_model rf --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-Emo/autofmri-rf-rf/subj5 &
 
-# wait
+wait
 
 CUDA_VISIBLE_DEVICES=0 python train_Emo_atlas.py --subject 1 --stage1_model rf --stage2_model svm --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-Emo/autofmri-rf-svm/subj1 &
 CUDA_VISIBLE_DEVICES=1 python train_Emo_atlas.py --subject 2 --stage1_model rf --stage2_model svm --max_patches_ratio 0.5 --n_jobs 8 --atlas_name yeo --result_dir result-Emo/autofmri-rf-svm/subj2 &

@@ -20,26 +20,26 @@ conda activate autofmri
 
 
 
-CUDA_VISIBLE_DEVICES=0 python train_Haxby_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj1 --result_dir result-Haxby/baseline-roi-anova-vt-rf/subj1 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj1.nii &
-CUDA_VISIBLE_DEVICES=1 python train_Haxby_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj2 --result_dir result-Haxby/baseline-roi-anova-vt-rf/subj2 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj2.nii &
-CUDA_VISIBLE_DEVICES=2 python train_Haxby_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj3 --result_dir result-Haxby/baseline-roi-anova-vt-rf/subj3 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj3.nii &
-CUDA_VISIBLE_DEVICES=3 python train_Haxby_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj4 --result_dir result-Haxby/baseline-roi-anova-vt-rf/subj4 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj4.nii &
-CUDA_VISIBLE_DEVICES=4 python train_Haxby_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj5 --result_dir result-Haxby/baseline-roi-anova-vt-rf/subj5 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj5.nii &
+CUDA_VISIBLE_DEVICES=0 python train_Haxby_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj1 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-rf/subj1 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj1_atlas_yeo400.nii &
+CUDA_VISIBLE_DEVICES=1 python train_Haxby_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj2 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-rf/subj2 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj2_atlas_yeo400.nii &
+CUDA_VISIBLE_DEVICES=2 python train_Haxby_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj3 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-rf/subj3 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj3_atlas_yeo400.nii &
+CUDA_VISIBLE_DEVICES=3 python train_Haxby_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj4 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-rf/subj4 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj4_atlas_yeo400.nii &
+CUDA_VISIBLE_DEVICES=4 python train_Haxby_baseline_roi_anova.py --stage1_model rf  --data_dir data/haxby2001/subj5 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-rf/subj5 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj5_atlas_yeo400.nii &
 
 wait
 
-CUDA_VISIBLE_DEVICES=0 python train_Haxby_baseline_roi_anova.py --stage1_model svm  --data_dir data/haxby2001/subj1 --result_dir result-Haxby/baseline-roi-anova-vt-svm/subj1 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj1.nii &
-CUDA_VISIBLE_DEVICES=1 python train_Haxby_baseline_roi_anova.py --stage1_model svm  --data_dir data/haxby2001/subj2 --result_dir result-Haxby/baseline-roi-anova-vt-svm/subj2 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj2.nii &
-CUDA_VISIBLE_DEVICES=2 python train_Haxby_baseline_roi_anova.py --stage1_model svm  --data_dir data/haxby2001/subj3 --result_dir result-Haxby/baseline-roi-anova-vt-svm/subj3 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj3.nii &
-CUDA_VISIBLE_DEVICES=3 python train_Haxby_baseline_roi_anova.py --stage1_model svm  --data_dir data/haxby2001/subj4 --result_dir result-Haxby/baseline-roi-anova-vt-svm/subj4 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj4.nii &
-CUDA_VISIBLE_DEVICES=4 python train_Haxby_baseline_roi_anova.py --stage1_model svm  --data_dir data/haxby2001/subj5 --result_dir result-Haxby/baseline-roi-anova-vt-svm/subj5 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj5.nii &
+CUDA_VISIBLE_DEVICES=0 python train_Haxby_baseline_roi_anova.py --stage1_model svm  --data_dir data/haxby2001/subj1 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-svm/subj1 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj1_atlas_yeo400.nii &
+CUDA_VISIBLE_DEVICES=1 python train_Haxby_baseline_roi_anova.py --stage1_model svm  --data_dir data/haxby2001/subj2 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-svm/subj2 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj2_atlas_yeo400.nii &
+CUDA_VISIBLE_DEVICES=2 python train_Haxby_baseline_roi_anova.py --stage1_model svm  --data_dir data/haxby2001/subj3 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-svm/subj3 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj3_atlas_yeo400.nii &
+CUDA_VISIBLE_DEVICES=3 python train_Haxby_baseline_roi_anova.py --stage1_model svm  --data_dir data/haxby2001/subj4 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-svm/subj4 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj4_atlas_yeo400.nii &
+CUDA_VISIBLE_DEVICES=4 python train_Haxby_baseline_roi_anova.py --stage1_model svm  --data_dir data/haxby2001/subj5 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-svm/subj5 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj5_atlas_yeo400.nii &
 
 wait
 
-CUDA_VISIBLE_DEVICES=0 python train_Haxby_baseline_roi_anova.py --stage1_model cnn  --data_dir data/haxby2001/subj1 --result_dir result-Haxby/baseline-roi-anova-vt-cnn/subj1 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj1.nii &
-CUDA_VISIBLE_DEVICES=1 python train_Haxby_baseline_roi_anova.py --stage1_model cnn  --data_dir data/haxby2001/subj2 --result_dir result-Haxby/baseline-roi-anova-vt-cnn/subj2 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj2.nii &
-CUDA_VISIBLE_DEVICES=2 python train_Haxby_baseline_roi_anova.py --stage1_model cnn  --data_dir data/haxby2001/subj3 --result_dir result-Haxby/baseline-roi-anova-vt-cnn/subj3 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj3.nii &
-CUDA_VISIBLE_DEVICES=3 python train_Haxby_baseline_roi_anova.py --stage1_model cnn  --data_dir data/haxby2001/subj4 --result_dir result-Haxby/baseline-roi-anova-vt-cnn/subj4 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj4.nii &
-CUDA_VISIBLE_DEVICES=4 python train_Haxby_baseline_roi_anova.py --stage1_model cnn  --data_dir data/haxby2001/subj5 --result_dir result-Haxby/baseline-roi-anova-vt-cnn/subj5 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj5.nii &
+CUDA_VISIBLE_DEVICES=0 python train_Haxby_baseline_roi_anova.py --stage1_model cnn  --data_dir data/haxby2001/subj1 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-cnn/subj1 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj1_atlas_yeo400.nii &
+CUDA_VISIBLE_DEVICES=1 python train_Haxby_baseline_roi_anova.py --stage1_model cnn  --data_dir data/haxby2001/subj2 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-cnn/subj2 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj2_atlas_yeo400.nii &
+CUDA_VISIBLE_DEVICES=2 python train_Haxby_baseline_roi_anova.py --stage1_model cnn  --data_dir data/haxby2001/subj3 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-cnn/subj3 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj3_atlas_yeo400.nii &
+CUDA_VISIBLE_DEVICES=3 python train_Haxby_baseline_roi_anova.py --stage1_model cnn  --data_dir data/haxby2001/subj4 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-cnn/subj4 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj4_atlas_yeo400.nii &
+CUDA_VISIBLE_DEVICES=4 python train_Haxby_baseline_roi_anova.py --stage1_model cnn  --data_dir data/haxby2001/subj5 --result_dir result-Haxby/baseline-roi-anova-atlas-yeo400-cnn/subj5 --mask_file data/haxby2001/wmasks_binary/wmask4_vt_subj5_atlas_yeo400.nii &
 
 wait

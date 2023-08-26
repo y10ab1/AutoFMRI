@@ -13,6 +13,12 @@ class EmoDataLoader():
         self.subject = [int(sub) for sub in subject] if isinstance(subject, list) else [int(subject)]
         self.runs = runs if runs is not None else [1, 2, 3, 4, 5]
         self.mask = load_img(mask_file) if mask_file is not None else None
+        
+        # resample mask if mask is too large
+        if self.mask is not None:
+            if self.mask.shape[0] > 100:
+                self.mask = new_img_like(self.mask, self.mask.get_fdata()[::2, ::2, ::2])
+                print('Resampled mask shape:', self.mask.shape)
         print('Mask shape:', self.mask.shape if self.mask is not None else None)
         
         # if mask is not made of 0s and 1s, threshold it
@@ -66,8 +72,8 @@ class EmoDataLoader():
                     fourD_data_runs[i] = masker.fit_transform(fourD_data_runs[i])
                 else:
                     # Just standardize the data if mask is not specified
-                    # fourD_data_runs[i] = clean_img(fourD_data_runs[i]).get_fdata().transpose(3, 0, 1, 2)
-                    fourD_data_runs[i] = fourD_data_runs[i].get_fdata().transpose(3, 0, 1, 2)
+                    fourD_data_runs[i] = clean_img(fourD_data_runs[i]).get_fdata().transpose(3, 0, 1, 2)
+                    # fourD_data_runs[i] = fourD_data_runs[i].get_fdata().transpose(3, 0, 1, 2)
                     pass
                 print(f'fourD_data_runs[{i}].shape:', fourD_data_runs[i].shape)
             
@@ -107,26 +113,28 @@ def get_tsnr(X):
     
 if __name__ == '__main__':
 
-    fMRIDataLoader = EmoDataLoader(data_dir='data/fmri-dataset-for-emotion-recognition', subject=[1])
-    X, y = fMRIDataLoader.load_volume_data()
+    # fMRIDataLoader = EmoDataLoader(data_dir='data/fmri-dataset-for-emotion-recognition', subject=[1],
+    #                                   mask_file='data/fmri-dataset-for-emotion-recognition/masks/mean_tfce_corrp_tstat1.nii', threshold=0.9)
+    # X, y = fMRIDataLoader.load_volume_data()
+    # exit()
 
 
-
-    # calculate tsnr
-    tsnr = get_tsnr(X)
+    # # calculate tsnr
+    # tsnr = get_tsnr(X)
     
     
-    # save epi mask
-    whole_brain_mask = compute_epi_mask(fMRIDataLoader.reference_img)
-    whole_brain_mask.to_filename('data/whole_brain_mask.nii')
+    # # save epi mask
+    # whole_brain_mask = compute_epi_mask(fMRIDataLoader.reference_img)
+    # whole_brain_mask.to_filename('data/whole_brain_mask.nii')
     
     # calculate tsnr for each subject and save it to a csv file
     import pandas as pd
     df = pd.DataFrame(columns=['subject', 'tsnr'])
     for subj in range(1, 6):
-        data_loader = EmoDataLoader(data_dir='data/fmri-dataset-for-emotion-recognition', subject=[1])
+        data_loader = EmoDataLoader(data_dir='data/fmri-dataset-for-emotion-recognition', subject=[subj])
+                                      
         X, y = data_loader.load_volume_data()
         tsnr = get_tsnr(X)
         df = df.append({'subject': subj, 'tsnr': tsnr}, ignore_index=True)
         
-    df.to_csv('data/2021_Reconstruction_dataset/tsnr.csv', index=False)
+    df.to_csv('data/fmri-dataset-for-emotion-recognition/tsnr.csv', index=False)

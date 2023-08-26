@@ -54,8 +54,15 @@ def main(args):
     le = LabelEncoder()
     X, y = EmoDataLoader(  subject=args.subject, 
                            mask_file=args.mask_file).load_volume_data()
+    
+    # drop the label with 'end'
+    X = X[y != 'end']
+    y = y[y != 'end']
+    
     y = le.fit_transform(y) # encode labels to integers
     X = X.squeeze() # squeeze from (n_samples, 1, 675) to (n_samples, 675)
+    
+    
     
     # get model
     model = get_model(args.stage1_model, args)
@@ -71,6 +78,7 @@ def main(args):
     # cross validation to get the performance of the model
     cv = StratifiedKFold(n_splits=args.kfold, shuffle=True, random_state=SEED)
     scores = cross_validate(model, X, y, cv=cv, scoring=['accuracy', 'f1_macro'], n_jobs=args.n_jobs, verbose=1, error_score='raise')
+    
     # scores = cross_validate(model, X, y, cv=cv, scoring=['accuracy', 'f1_macro'], verbose=1, error_score='raise')
     print('Accuracy:', scores['test_accuracy'].mean())
     print('F1:', scores['test_f1_macro'].mean())

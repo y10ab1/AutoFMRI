@@ -7,7 +7,7 @@ from typing import List, Tuple, Optional
 
 from nilearn import datasets
 from nilearn.maskers import NiftiLabelsMasker
-from nilearn.image import get_data, new_img_like, resample_img
+from nilearn.image import get_data, new_img_like, resample_img, load_img
 
 
 
@@ -34,7 +34,7 @@ def patchify_by_cube(X, cube_size=(20, 20, 20), stride=(20, 20, 20)):
     return patch_masks
 
 
-def patchify_by_atlas(X, reference_img, atlas_name='juelich', verbose=False):
+def patchify_by_atlas(X, reference_img, atlas_name='yeo', threshold=0.1, verbose=False):
     # X is a 4D array of shape (n_samples, n_x, n_y, n_z)
     # reference_img is a Nifti1Image object
     # return a list of patch masks, each patch mask is a list of indices where the mask is 1
@@ -110,9 +110,8 @@ def patchify_by_atlas(X, reference_img, atlas_name='juelich', verbose=False):
         if verbose:
             print('Region:', atlas.labels[i+1], 'Number of voxels:', np.sum(mask))
 
-        # if the non-zero elements in the original image is less than 
-        # 10% of the total number of elements in the patch, then skip this patch
-        if np.count_nonzero(reference_img.get_fdata()[mask]) <= 0.1 * np.sum(mask):
+        # if a patch contains less than threshold (default: 10%) of the non-zero voxels in the region, then skip this patch
+        if np.count_nonzero(reference_img.get_fdata()[mask]) <= threshold * np.sum(mask):
             continue
 
         # Get the indices where the mask is 1
@@ -195,28 +194,26 @@ def apply_mask(mask, data):
     
 if __name__ == '__main__':
 
-    # Load the image
-    img = nib.load('data/haxby2001/subj2/preprocessed/swubold.nii')
-    reference_img = img.slicer[..., 0]
-    # Get the data
-    X = get_data(img)
-    
-    # reshape the data to (n_samples, n_x, n_y, n_z)
-    X = np.transpose(X, (3, 0, 1, 2))
-
-    # Patchify the image
-    patch_masks = patchify_by_atlas(X, reference_img, atlas_name='hcp_mmp_sym')
-    # patch_masks = patchify_by_atlas(X, reference_img, atlas_name='harvard_oxford')
-
-    # Save some patch masks as 3D images and also aggregate them  and save into a 3D image
-    aggregate_patch_mask = np.zeros(X[0].shape)
-    for i, patch_mask in enumerate(patch_masks[:40:3]):
-        patch_masks_img = np.zeros(X[0].shape)
-        patch_masks_img[patch_mask[0], patch_mask[1], patch_mask[2]] = 1
-        nib.save(nib.Nifti1Image(patch_masks_img, img.affine), f'patch_mask_{i}.nii')
+    for idx in range(1, 6):
+        # Load the image
+        path = f'data/haxby2001/wmasks_binary/wmask4_vt_subj{idx}.nii'
+        img = nib.load(path)
+        print('Image shape:', img.shape)
+            
+        # patchify the image by atlas
+        patch_masks = patchify_by_atlas(img.get_fdata(), img, atlas_name='yeo', threshold=0.05)
         
-        aggregate_patch_mask[patch_mask[0], patch_mask[1], patch_mask[2]] = 1
-        
-    nib.save(nib.Nifti1Image(aggregate_patch_mask, img.affine), 'aggregate_patch_mask.nii')
+        print('Number of patches:', len(patch_masks))
+        for i in range(len(patch_masks)):
+            print('Patch', i, 'shape:', patch_masks[i][0].shape)
+            
+            
+        # create new 3D binary image
+        new_img = np.zeros(img.shape)
+        for i in range(len(patch_masks)):
+            new_img[patch_masks[i]] = 1
+            
+        # save the new image
+        nib.save(nib.Nifti1Image(new_img, img.affine), f'data/haxby2001/wmasks_binary/wmask4_vt_subj{idx}_atlas_yeo.nii')
         
     

@@ -8,7 +8,7 @@ import time
 from sklearn.base import BaseEstimator, ClassifierMixin
 from utils.patchify import patchify_by_cube, get_top_k_patches, patchify_by_atlas
 
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import accuracy_score, make_scorer
@@ -119,7 +119,7 @@ class AutoEstimator(BaseEstimator, ClassifierMixin):
         print('Start RandomizedSearchCV...')
         params = {
             'topk_patches': list(range(1, len(self.patch_masks))), # len(self.patch_masks) is the maximum number of patches
-            'topk_percent_shap': uniform(0.01, 0.2),
+            'topk_percent_shap': uniform(0.1, 0.5),
         }
         
         # Define the GA search
@@ -127,7 +127,7 @@ class AutoEstimator(BaseEstimator, ClassifierMixin):
         ra_search = RandomizedSearchCV(estimator=stage2_estimator,
                                         param_distributions=params,
                                         scoring=scorer,
-                                        cv=self.kfold,
+                                        cv=StratifiedKFold(n_splits=self.kfold, shuffle=True),
                                         n_jobs=self.n_jobs,
                                         n_iter=2*len(self.patch_masks)+10, # add 10 more iterations if the number of patches is small
                                         verbose=1,

@@ -34,6 +34,8 @@ class VKMCDataLoader():
     def load_volume_data(self, runs=[1, 2, 3, 4, 5, 6, 7, 8], sessions=[1, 2]):
         # Load 4D data from data_dir and get labels
         X, y = [], []
+        self.stimuli_names = []
+        
         for subject in self.subject:
             
             # Load and parse the stimuli 2 sessions log files
@@ -68,7 +70,7 @@ class VKMCDataLoader():
                     fourD_data = masker.fit_transform(fourD_data)
                 else:
                     # Just standardize the data if mask is not specified
-                    fourD_data = clean_img(fourD_data)
+                    fourD_data = clean_img(fourD_data).get_fdata().transpose(3, 0, 1, 2) # (n_samples, n_x, n_y, n_z)
                     pass
 
                 print('fourD_data.shape:', fourD_data.shape)
@@ -81,8 +83,7 @@ class VKMCDataLoader():
                 labels = []
                 if isinstance(fourD_data, np.ndarray): # masked data (n_samples, n_features)
                     volume_times = np.arange(0, fourD_data.shape[0]*2, 2)
-                else: # unmasked data (n_samples, n_x, n_y, n_z)
-                    volume_times = np.arange(0, fourD_data.shape[-1]*2, 2)  # The times at which each volume was acquired
+
                 for t in volume_times:
                     # Find the stimulus that started before this volume was acquired, and with the right run
                     onset_times_and_labels_df = onset_times_and_labels[f'session-{session}']
@@ -99,16 +100,12 @@ class VKMCDataLoader():
                         labels.append(stimulus['sound.' + self.label_type])
                     else:
                         labels.append('rest')
+                    self.stimuli_names.append(stimulus['sound.name']+f'_sess-{session}_run-{run}' if not stimuli.empty else 'rest')
                     
                 # Add the data and labels of this run to the lists
 
-                if isinstance(fourD_data, np.ndarray): # masked data (n_samples, n_features)
-                    # X = np.concatenate((X, fourD_data), axis=0) 
-                    X.append(fourD_data)
-                else: # unmasked data (n_samples, n_x, n_y, n_z)
-                    # X = np.concatenate((X, np.array([index_img(fourD_data, i).get_fdata() for i in range(fourD_data.shape[-1])])), axis=0)
-                    X.append(np.array([index_img(fourD_data, i).get_fdata() for i in range(fourD_data.shape[-1])]))
-                # y = np.concatenate((y, labels), axis=0)
+
+                X.append(fourD_data)
                 y.append(labels)
 
         
@@ -225,26 +222,37 @@ def get_tsnr(X):
     
 if __name__ == '__main__':
     # Test the modified VKMCDataLoader with one subject and one run
-    # data_loader = VKMCDataLoader(
-    #                             data_dir='data/2021_Reconstruction_dataset',
-    #                             # data_dir='data/datas/LSA_all',
-    #                             # subject=['sub-001', 'sub-002'],
-    #                             subject=['sub-001'],
-    #                             # mask_file='data/2021_Reconstruction_dataset/masks/ACmask.nii',
-    #                             augment=1,
-    # )
+    data_loader = VKMCDataLoader(
+                                data_dir='data/2021_Reconstruction_dataset',
+                                subject=['sub-101'],
+                                # mask_file='data/2021_Reconstruction_dataset/masks/ACmask.nii',
+                                augment=1,
+    )
     
-    # X, y = data_loader.load_volume_data(runs=[1], sessions=[1])
-    # # X, y = data_loader.load_data()
+    X, y = data_loader.load_volume_data()
     
-    # # print first 30 labels
-    # print(y[:30])
+    exit()
     
-    # # count the number of labels
-    # # print('Number of labels:', len(np.unique(y)))
-    # print('Counts of each label:', np.unique(y, return_counts=True))
     
-    # print('X.shape:', X.shape, 'y.shape:', y.shape)
+    
+    
+    # save X to npy files, which name is the stimulus name
+    os.makedirs('data/2021_Reconstruction_dataset/ac_masked', exist_ok=True)    
+    cnt = 0
+    pre_stimuli_names = None
+    assert len(X) == len(data_loader.stimuli_names), f'X.shape[0] != len(data_loader.stimuli_names), {len(X)} != {len(data_loader.stimuli_names)}'
+    for i, x in enumerate(X):
+        if i % data_loader.augment == 0:
+            if data_loader.stimuli_names[i] != 'rest':
+                np.save(f'data/2021_Reconstruction_dataset/ac_masked/{data_loader.stimuli_names[i]}_scan-{cnt}.npy'.replace('.wav', ''), x)
+                print('Saving:', f'{data_loader.stimuli_names[i]}_scan-{cnt}.npy'.replace('.wav', ''))
+                cnt += 1
+                
+            if data_loader.stimuli_names[i] != pre_stimuli_names:
+                cnt = 0
+
+            pre_stimuli_names = data_loader.stimuli_names[i]
+        
     
     
     # calculate tsnr for each subject and save it to a csv file

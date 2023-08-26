@@ -12,9 +12,10 @@
 lscpu
 nvidia-smi
 
-echo "check current directory"
-pwd
-echo "check loaded modules"
-module list
-echo "check current environment"
-conda info --envs
+ml purge
+ml miniconda3
+ml cuda/11.7
+
+conda activate autofmri
+
+CUDA_VISIBLE_DEVICES=0 python data_loader/GTZAN.py

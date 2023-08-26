@@ -20,13 +20,13 @@ conda activate autofmri
 
 
 
-# CUDA_VISIBLE_DEVICES=0 python train_Emo_baseline_roi.py --stage1_model rf --result_dir result-Emo/baseline-roi-rf/subj1 --subject 1 --n_jobs 8 --mask_file data/fmri-dataset-for-emotion-recognition/masks/mean_tfce_corrp_tstat1.nii &
-# CUDA_VISIBLE_DEVICES=1 python train_Emo_baseline_roi.py --stage1_model rf --result_dir result-Emo/baseline-roi-rf/subj2 --subject 2 --n_jobs 8 --mask_file data/fmri-dataset-for-emotion-recognition/masks/mean_tfce_corrp_tstat1.nii &
-# CUDA_VISIBLE_DEVICES=2 python train_Emo_baseline_roi.py --stage1_model rf --result_dir result-Emo/baseline-roi-rf/subj3 --subject 3 --n_jobs 8 --mask_file data/fmri-dataset-for-emotion-recognition/masks/mean_tfce_corrp_tstat1.nii &
-# CUDA_VISIBLE_DEVICES=3 python train_Emo_baseline_roi.py --stage1_model rf --result_dir result-Emo/baseline-roi-rf/subj4 --subject 4 --n_jobs 8 --mask_file data/fmri-dataset-for-emotion-recognition/masks/mean_tfce_corrp_tstat1.nii &
-# CUDA_VISIBLE_DEVICES=4 python train_Emo_baseline_roi.py --stage1_model rf --result_dir result-Emo/baseline-roi-rf/subj5 --subject 5 --n_jobs 8 --mask_file data/fmri-dataset-for-emotion-recognition/masks/mean_tfce_corrp_tstat1.nii &
+CUDA_VISIBLE_DEVICES=0 python train_Emo_baseline_roi.py --stage1_model rf --result_dir result-Emo/baseline-roi-rf/subj1 --subject 1 --n_jobs 8 --mask_file data/fmri-dataset-for-emotion-recognition/masks/mean_tfce_corrp_tstat1.nii &
+CUDA_VISIBLE_DEVICES=1 python train_Emo_baseline_roi.py --stage1_model rf --result_dir result-Emo/baseline-roi-rf/subj2 --subject 2 --n_jobs 8 --mask_file data/fmri-dataset-for-emotion-recognition/masks/mean_tfce_corrp_tstat1.nii &
+CUDA_VISIBLE_DEVICES=2 python train_Emo_baseline_roi.py --stage1_model rf --result_dir result-Emo/baseline-roi-rf/subj3 --subject 3 --n_jobs 8 --mask_file data/fmri-dataset-for-emotion-recognition/masks/mean_tfce_corrp_tstat1.nii &
+CUDA_VISIBLE_DEVICES=3 python train_Emo_baseline_roi.py --stage1_model rf --result_dir result-Emo/baseline-roi-rf/subj4 --subject 4 --n_jobs 8 --mask_file data/fmri-dataset-for-emotion-recognition/masks/mean_tfce_corrp_tstat1.nii &
+CUDA_VISIBLE_DEVICES=4 python train_Emo_baseline_roi.py --stage1_model rf --result_dir result-Emo/baseline-roi-rf/subj5 --subject 5 --n_jobs 8 --mask_file data/fmri-dataset-for-emotion-recognition/masks/mean_tfce_corrp_tstat1.nii &
 
-# wait
+wait
 
 CUDA_VISIBLE_DEVICES=0 python train_Emo_baseline_roi.py --stage1_model svm --result_dir result-Emo/baseline-roi-svm/subj1 --subject 1 --n_jobs 8 --mask_file data/fmri-dataset-for-emotion-recognition/masks/mean_tfce_corrp_tstat1.nii &
 CUDA_VISIBLE_DEVICES=1 python train_Emo_baseline_roi.py --stage1_model svm --result_dir result-Emo/baseline-roi-svm/subj2 --subject 2 --n_jobs 8 --mask_file data/fmri-dataset-for-emotion-recognition/masks/mean_tfce_corrp_tstat1.nii &
