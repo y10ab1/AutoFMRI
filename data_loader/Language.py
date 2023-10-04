@@ -1,11 +1,19 @@
-from nilearn.image import load_img, binarize_img, index_img, clean_img, new_img_like
+from nilearn.image import load_img, binarize_img, index_img, clean_img, new_img_like, resample_to_img, get_data
 from nilearn.masking import compute_epi_mask
 from nilearn.maskers import NiftiMasker
+from nilearn.plotting import plot_stat_map
+from scipy.ndimage import binary_dilation
+from nilearn import datasets
+
+
 import os
 import numpy as np
 import pandas as pd
+import pandas as pd
 import glob
 from collections import defaultdict
+from scipy import stats
+
 
 
 class LanguageDataLoader():
@@ -72,6 +80,7 @@ class LanguageDataLoader():
                                                     f'tfMRI_LANGUAGE_{run}.nii.gz'))
                 # Masking
                 if self.mask is not None:
+                    self.mask = load_img(f'data/HCP_LANGUAGE/subj{subject}/mask_p0.001.nii.gz')
                     masker = NiftiMasker(mask_img=self.mask, standardize=True)
                     fourD_data_runs[run] = masker.fit_transform(fourD_data_runs[run])
                 else:
@@ -141,14 +150,31 @@ def get_tsnr(X):
     
 if __name__ == '__main__':
     
-    # calculate tsnr for each subject and save it to a csv file
-    import pandas as pd
-    df = pd.DataFrame(columns=['subject', 'tsnr'])
+    
+    # calculate contrast for each subject
     for subj in range(1, 14):
         data_loader = LanguageDataLoader(subject=[subj])
         X, y = data_loader.load_volume_data()
         print('label counts:', np.unique(y, return_counts=True))
-        tsnr = get_tsnr(X)
-        df = pd.concat([df, pd.DataFrame({'subject': [subj], 'tsnr': [tsnr]})], ignore_index=True)
+        _, p_values = stats.ttest_ind(X[(y == 'math') | (y == 'story')],
+                                      X[y == 'rest'], axis=0)
+        # Use a log scale for p-values
+        log_p_values = -np.log10(p_values)
         
-    df.to_csv('data/HCP_LANGUAGE/tsnr.csv', index=False)
+        # NAN values to zero
+        log_p_values[np.isnan(log_p_values)] = 0.0
+        log_p_values[log_p_values > 10.0] = 10.0
+        
+        # threshold the p values and binarize
+        log_p_values = np.where(log_p_values > 2.0, log_p_values, 0.0)
+        mask = np.where(log_p_values > 0.0, 1.0, 0.0)
+        
+
+        # save mask 
+        mask_img = new_img_like(data_loader.reference_img, mask)
+        mask_img.to_filename(f'data/HCP_LANGUAGE/subj{subj}/mask_p0.01.nii.gz')
+        
+        # dilate the mask
+        mask = binary_dilation(mask)
+        mask_img_dilated = new_img_like(data_loader.reference_img, mask)
+        mask_img_dilated.to_filename(f'data/HCP_LANGUAGE/subj{subj}/mask_p0.01_dilated.nii.gz')

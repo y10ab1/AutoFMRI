@@ -15,14 +15,10 @@ import json
 from utils.patchify import patchify_by_cube
 from data_loader.Emo import EmoDataLoader
 from sklearn.model_selection import KFold, StratifiedKFold
-from sklearn.ensemble import RandomForestClassifier as skRF
 from sklearn.model_selection import cross_val_score, cross_validate, cross_val_predict
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, accuracy_score
 from sklearn.preprocessing import LabelEncoder
 
-
-
-from cuml.ensemble import RandomForestClassifier as cuRF
 
 from model.model_gelu_cnn import CNN
 from copy import deepcopy

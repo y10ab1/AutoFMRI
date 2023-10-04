@@ -31,7 +31,8 @@ from utils.helper import calculate_shap_values
 
 class AutoEstimator(BaseEstimator, ClassifierMixin):
     def __init__(self, data_dir=None, subject=None, stage1_model=None, stage2_model=None, stage1_model_type=None, stage2_model_type=None, kfold=4, atlas_name=None, 
-                 topk_patches=0.2, topk_percent_shap=0.2, max_patches_ratio=0.5, n_jobs=1, result_dir='results', ref_img=None):
+                 topk_patches=0.2, topk_percent_shap=0.01, max_patches_ratio=0.5, n_jobs=1, result_dir='results', ref_img=None,
+                 random_search=True, sample_to_calculate_shap=1.0):
         self.data_dir = data_dir
         self.subject = subject
         self.stage1_model = stage1_model
@@ -46,6 +47,8 @@ class AutoEstimator(BaseEstimator, ClassifierMixin):
         self.result_dir = result_dir
         self.max_patches_ratio = max_patches_ratio
         self.ref_img = ref_img
+        self.random_search = random_search
+        self.sample_to_calculate_shap = sample_to_calculate_shap # sample k% of the training data to calculate SHAP values (saving time), default: 100%
         
         assert self.ref_img is not None, 'ref_img needs to be specified!'
 
@@ -92,8 +95,8 @@ class AutoEstimator(BaseEstimator, ClassifierMixin):
             model.fit(X_train_patch, y)
             
             # Sample 10% of the training data to calculate SHAP values (saving time)
-            sampled_idx = np.random.choice(len(X_train_patch), size=int(0.1 * len(X_train_patch)), replace=False)
-            sampled_X_train_patch = X_train_patch[sampled_idx]          
+            sampled_idx = np.random.choice(len(X_train_patch), size=int(self.sample_to_calculate_shap * len(X_train_patch)), replace=False)
+            sampled_X_train_patch = X_train_patch[sampled_idx]         
             
             # calculate SHAP values
             shap_values = calculate_shap_values(model, sampled_X_train_patch, self.stage1_model_type)
@@ -115,32 +118,41 @@ class AutoEstimator(BaseEstimator, ClassifierMixin):
                                                 topk_percent_shap = self.topk_percent_shap,
                                                 stage2_model = self.stage2_model,
                                                 result_dir = self.result_dir)
-        
-        print('Start RandomizedSearchCV...')
-        params = {
-            'topk_patches': list(range(1, len(self.patch_masks))), # len(self.patch_masks) is the maximum number of patches
-            'topk_percent_shap': uniform(0.1, 0.5),
-        }
-        
-        # Define the GA search
-        scorer = make_scorer(accuracy_score)
-        ra_search = RandomizedSearchCV(estimator=stage2_estimator,
-                                        param_distributions=params,
-                                        scoring=scorer,
-                                        cv=StratifiedKFold(n_splits=self.kfold, shuffle=True),
-                                        n_jobs=self.n_jobs,
-                                        n_iter=2*len(self.patch_masks)+10, # add 10 more iterations if the number of patches is small
-                                        verbose=1,
-        )
-        
-        ra_search.fit(X, y)
-        print('Best params:', ra_search.best_params_)
-        print('Best score:', ra_search.best_score_)
-        print('Done fitting RandomizedSearchCV...')
+        if self.random_search:
+
+            print('Start RandomizedSearchCV...')
+            params = {
+                'topk_patches': list(range(1, len(self.patch_masks))), # len(self.patch_masks) is the maximum number of patches
+                'topk_percent_shap': uniform(0.01, 0.5),
+            }
+            
+            # Define the GA search
+            scorer = make_scorer(accuracy_score)
+            ra_search = RandomizedSearchCV(estimator=stage2_estimator,
+                                            param_distributions=params,
+                                            scoring=scorer,
+                                            cv=StratifiedKFold(n_splits=self.kfold, shuffle=True),
+                                            n_jobs=self.n_jobs,
+                                            n_iter=2*len(self.patch_masks)+10, # add 10 more iterations if the number of patches is small
+                                            verbose=1,
+            )
+            
+            ra_search.fit(X, y)
+            print('Best params:', ra_search.best_params_)
+            print('Best score:', ra_search.best_score_)
+            print('Done fitting RandomizedSearchCV...')
+            self.high_performance_voxels_mask = ra_search.best_estimator_.high_performance_voxels_mask
+            self.best_model = ra_search.best_estimator_
+        else:
+            # Fit the stage 2 estimator
+            print('Start fitting stage2_estimator...')
+            stage2_estimator.fit(X, y)
+            print('Done fitting stage2_estimator...')
+            self.high_performance_voxels_mask = stage2_estimator.high_performance_voxels_mask
+            self.best_model = stage2_estimator
 
 
-        self.high_performance_voxels_mask = ra_search.best_estimator_.high_performance_voxels_mask
-        self.best_model = ra_search.best_estimator_
+        
         
         img_high_performance_voxels_mask = np.zeros_like(self.ref_img.get_fdata())
         img_high_performance_voxels_mask[self.high_performance_voxels_mask[0],

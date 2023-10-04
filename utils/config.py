@@ -19,11 +19,12 @@ def get_args():
     args.add_argument('--label_encoder', type=str, default=None, help='Specify the label encoder for inverse transform')
     args.add_argument('--atlas_name', type=str, default='yeo', help='Specify the atlas name for patchify', choices=['harvard_oxford', 'juelich', 'yeo', 'yeo400', 'hcp_mmp_sym'])
     args.add_argument('--max_patches_ratio', type=float, default=0.5, help='Specify the maximum ratio of patches for training')  
-    args.add_argument('--mask_file', type=str, default='data/haxby2001/subj4/mask4_vt.nii', help='Specify the mask file for masking')
+    args.add_argument('--mask_file', type=str, default=None, help='Specify the mask file for masking')
     args.add_argument('--augment', type=int, default=0, help='Specify the augmentation for training')
-
+    args.add_argument('--random_search', action='store_true', help='Specify whether to use random search for hyperparameter tuning')
+    
     # CNN hyperparameters
-    args.add_argument('--num_classes', type=int, default=9, help='Specify the number of classes for classification')
+    args.add_argument('--num_classes', type=int, default=2, help='Specify the number of classes for classification')
     args.add_argument('--num_epochs', type=int, default=100, help='Specify the number of epochs for training')
     args.add_argument('--batch_size', type=int, default=32, help='Specify the batch size for training')
     args.add_argument('--lr', type=float, default=0.001, help='Specify the learning rate for training')

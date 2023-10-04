@@ -53,7 +53,7 @@ def patchify_by_atlas(X, reference_img, atlas_name='yeo', threshold=0.1, verbose
     elif atlas_name == 'juelich':
         atlas = datasets.fetch_atlas_juelich('prob-2mm')
         atlas_data = get_data(atlas.maps)
-    elif atlas_name == 'yeo':
+    elif atlas_name == 'yeo' or atlas_name == 'yeo_thick17':
         atlas = datasets.fetch_atlas_yeo_2011()
         atlas['maps'] = atlas['thick_17']
         atlas['labels'] = list(np.unique(get_data(atlas['maps'])))
@@ -127,27 +127,89 @@ def patchify_by_atlas(X, reference_img, atlas_name='yeo', threshold=0.1, verbose
     print('Number of candidate patches:', len(patch_masks))
     return patch_masks
 
-# def get_top_k_patches(patch_scores, patch_masks, X_train, topk_patches, ref_niimg=None, output_filename=None):
-#     topk_patches = int(topk_patches)
-#     print('Top k performance scores:', np.sort(patch_scores)[-topk_patches:])
-    
-#     selected_patch_masks_idx = np.argsort(patch_scores)[-topk_patches:]
-#     selected_patch_masks = np.array(patch_masks, dtype=object)[selected_patch_masks_idx].tolist()
-    
-#     high_performance_voxels_mask = np.zeros(X_train[0].shape)
-    
-#     # Save selected patches as a 3D image
-#     # The shape of selected_patch_masks is (n_samples, x_indices, y_indices, z_indices)
-#     if output_filename:
-#         for i, patch_mask in enumerate(selected_patch_masks):
-#             # assign value according to the patch score
-#             high_performance_voxels_mask[patch_mask[0], patch_mask[1], patch_mask[2]] = patch_scores[selected_patch_masks_idx[i]]
-#         # nib.save(nib.Nifti1Image(high_performance_voxels_mask, X_train[1].affine), output_filename)
-#         nifti_img = new_img_like(ref_niimg=ref_niimg,
-#                                 data=high_performance_voxels_mask).to_filename(output_filename)
-#     high_performance_voxels_mask = np.zeros(X_train[0].shape)
+def filter_clusters_by_atlas(X, reference_img, atlas_name='yeo', threshold=0.05, verbose=False):
+    # Fetch the atlas
+    if atlas_name == 'harvard_oxford':
+        atlas = datasets.fetch_atlas_harvard_oxford('cort-maxprob-thr25-2mm')
         
-#     return selected_patch_masks, high_performance_voxels_mask
+        # Transform the 3D atlas into a 4D atlas, each 3D volume represents a region
+        atlas_maps = []
+        for label in np.unique(get_data(atlas.maps))[1:]:
+            atlas_maps.append(get_data(atlas.maps) == label)
+        atlas_data = np.stack(atlas_maps, axis=-1)
+    elif atlas_name == 'juelich':
+        atlas = datasets.fetch_atlas_juelich('prob-2mm')
+        atlas_data = get_data(atlas.maps)
+    elif atlas_name == 'yeo':
+        atlas = datasets.fetch_atlas_yeo_2011()
+        atlas['maps'] = atlas['thick_17']
+        atlas['labels'] = list(np.unique(get_data(atlas['maps'])))
+        
+        atlas_maps = []
+        for label in np.unique(get_data(atlas.maps))[1:]:
+            atlas_maps.append(get_data(atlas.maps)[..., 0] == label)
+        atlas_data = np.stack(atlas_maps, axis=-1)
+    elif atlas_name == 'yeo400':
+        # load atlas file from local atlas folder
+        atlas = {}
+        atlas['maps'] = nib.load('atlas/Schaefer2018_400Parcels_17Networks_order_FSLMNI152_2mm.nii')
+        atlas['labels'] = list(np.unique(get_data(atlas['maps'])))
+        atlas = type('atlas', (object,), atlas)() # convert dict to object
+        
+        # Transform the 3D atlas into a 4D atlas, each 3D volume represents a region
+        atlas_maps = []
+        for label in np.unique(get_data(atlas.maps))[1:]:
+            atlas_maps.append(get_data(atlas.maps) == label)
+        atlas_data = np.stack(atlas_maps, axis=-1)
+
+    elif atlas_name == 'hcp_mmp_sym':
+        # load atlas file from local atlas folder
+        atlas = {}
+        atlas['maps'] = nib.load('atlas/MMP_in_MNI_symmetrical_1.nii')
+        atlas['labels'] = list(np.unique(get_data(atlas['maps'])))
+        atlas = type('atlas', (object,), atlas)() # convert dict to object
+        
+        # Transform the 3D atlas into a 4D atlas, each 3D volume represents a region
+        atlas_maps = []
+        for label in np.unique(get_data(atlas.maps))[1:]:
+            atlas_maps.append(get_data(atlas.maps) == label)
+        atlas_data = np.stack(atlas_maps, axis=-1)
+        
+    else:
+        raise ValueError('Invalid atlas name')
+
+    # Resample the atlas to the same affine as the reference image
+    atlas_resampled = resample_img(new_img_like(atlas.maps, atlas_data), 
+                                    target_affine=reference_img.affine, 
+                                    target_shape=reference_img.shape,
+                                    interpolation='nearest')
+    atlas_data = get_data(atlas_resampled)
+
+    print('Regions labels:', atlas.labels, 'Number of regions:', len(atlas.labels))
+    print('Atlas data shape:', atlas_data.shape)
+
+    # Now X should be a 4D array of shape (n_samples, n_x, n_y, n_z)
+    # Atlas data is a 4D array where each 3D volume represents a region
+    filtered_X = np.zeros_like(X)  # Initialize with zeros
+
+    for i in range(atlas_data.shape[-1]):
+        # Create a mask for the current region
+        mask = atlas_data[..., i].astype(bool)
+
+        if verbose:
+            print('Region:', atlas.labels[i + 1], 'Number of voxels:', np.sum(mask))
+
+        # Check the number of non-zero voxels in the region
+        if np.count_nonzero(X[..., 0][mask]) <= threshold * np.sum(mask):
+            continue  # Skip this region
+
+        # Filter the cluster in X
+        filtered_X[..., 0][mask] = X[..., 0][mask]
+
+    if verbose:
+        print('Filtering complete.')
+
+    return filtered_X
 
 
 
