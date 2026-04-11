@@ -151,16 +151,22 @@ autofmri/
     └── seed.py          # Reproducibility & tSNR
 ```
 
+## Previous Repository
+
+This project was originally developed as [fMRI-feature-decoder](https://github.com/y10ab1/fMRI-feature-decoder). That repository now redirects here.
+
 ## Citation
 
 If you use AutoFMRI in your research, please cite:
 
 ```bibtex
-@article{autofmri2024,
-  title={AutoFMRI: An Automatic Two-Stage Thresholding for fMRI Decoding},
-  author={y10ab1},
-  year={2024},
-  url={https://github.com/y10ab1/AutoFMRI}
+@INPROCEEDINGS{10095192,
+  author={Cheung, Vincent K.M. and Peng, Yueh-Po and Lin, Jing-Hua and Su, Li},
+  booktitle={ICASSP 2023 - 2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  title={Decoding Musical Pitch from Human Brain Activity with Automatic Voxel-Wise Whole-Brain FMRI Feature Selection},
+  year={2023},
+  pages={1-5},
+  doi={10.1109/ICASSP49357.2023.10095192}
 }
 ```
 
