@@ -26,8 +26,6 @@ wheels/
 *.egg
 
 # PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
 
@@ -45,74 +43,49 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
+.pytest_cache/
 
 # Translations
 *.mo
 *.pot
 
-# Django stuff:
+# Logs
 *.log
-local_settings.py
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# pyenv
-.python-version
-
-# celery beat schedule file
-celerybeat-schedule
-
-# SageMath parsed files
-*.sage.py
 
 # dotenv
 .env
 
-# virtualenv
+# Virtual environments
 .venv
 venv/
 ENV/
 
-# Spyder project settings
-.spyderproject
-.spyproject
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
 
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
+# Jupyter
+.ipynb_checkpoints/
 
 # mypy
 .mypy_cache/
 
-# input data, saved log, checkpoints, symbolic link
+# Data directories (user-local, not shipped)
 data/
-data
 input/
-saved/
 datasets/
-result/
+
+# Results (experiment outputs)
 results/
+result/
 *.csv
 *.out
-*result*/
 
-# editor, os cache directory
-.vscode/
-.idea/
-__MACOSX/
+# Large binary files
+*.nii
+*.nii.gz
+!atlas/*.nii
