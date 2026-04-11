@@ -20,8 +20,9 @@ def load_atlas(
     Parameters
     ----------
     atlas_name : str
-        One of ``"harvard_oxford"``, ``"juelich"``, ``"yeo"``,
-        ``"yeo_thick17"``, ``"yeo400"``, ``"hcp_mmp_sym"``, or ``"custom"``.
+        One of ``"harvard_oxford"``, ``"juelich"``, ``"yeo"`` (7-network),
+        ``"yeo17"`` (17-network), ``"yeo400"``, ``"hcp_mmp_sym"``,
+        or ``"custom"``.
     reference_img : Nifti1Image, optional
         If provided the atlas is resampled to this space.
     atlas_path : str, optional
@@ -50,16 +51,23 @@ def load_atlas(
         maps_img = atlas.maps
         labels = list(np.unique(get_data(atlas.maps)))
 
-    elif atlas_name in ("yeo", "yeo_thick17"):
-        atlas = datasets.fetch_atlas_yeo_2011()
-        maps_img_raw = atlas["thick_17"]
+    elif atlas_name in ("yeo", "yeo7", "yeo_thick7"):
+        atlas = datasets.fetch_atlas_yeo_2011(n_networks=7, thickness="thick")
+        maps_img_raw = atlas["maps"]
         raw_data = get_data(maps_img_raw)
         if raw_data.ndim == 4:
             raw_data = raw_data[..., 0]
-        atlas_maps = []
-        for label in np.unique(raw_data)[1:]:
-            atlas_maps.append(raw_data == label)
-        atlas_data = np.stack(atlas_maps, axis=-1)
+        atlas_data = _3d_to_4d(raw_data)
+        maps_img = maps_img_raw
+        labels = list(np.unique(raw_data))
+
+    elif atlas_name in ("yeo17", "yeo_thick17"):
+        atlas = datasets.fetch_atlas_yeo_2011(n_networks=17, thickness="thick")
+        maps_img_raw = atlas["maps"]
+        raw_data = get_data(maps_img_raw)
+        if raw_data.ndim == 4:
+            raw_data = raw_data[..., 0]
+        atlas_data = _3d_to_4d(raw_data)
         maps_img = maps_img_raw
         labels = list(np.unique(raw_data))
 
@@ -89,7 +97,7 @@ def load_atlas(
     else:
         raise ValueError(
             f"Unknown atlas_name '{atlas_name}'. Supported: "
-            "harvard_oxford, juelich, yeo, yeo400, hcp_mmp_sym, custom."
+            "harvard_oxford, juelich, yeo, yeo17, yeo400, hcp_mmp_sym, custom."
         )
 
     if reference_img is not None:
