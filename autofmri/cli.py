@@ -116,7 +116,10 @@ def _train_autofmri(X, y, ref_img, args):
             stage1_model_type=args.stage1_model,
             stage2_model_type=args.stage2_model,
             kfold=args.kfold,
+            patch_method=args.patch_method,
             atlas_name=args.atlas,
+            cube_size=args.cube_size,
+            cube_stride=args.cube_stride,
             n_jobs=args.n_jobs,
             max_patches_ratio=args.max_patches_ratio,
             ref_img=ref_img,
@@ -231,6 +234,11 @@ def _save_results_baseline(fold_results, args):
 
 # ---------- Argument parser ----------
 
+def _parse_tuple(s: str) -> tuple:
+    """Parse a space-separated string like '20 20 20' into a tuple of ints."""
+    return tuple(int(x) for x in s.split())
+
+
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="autofmri",
@@ -259,9 +267,27 @@ def _build_parser() -> argparse.ArgumentParser:
     train.add_argument("--stage1-model", default="rf", help="Stage 1 model name")
     train.add_argument("--stage2-model", default="rf", help="Stage 2 model name")
     train.add_argument(
+        "--patch-method",
+        default="atlas",
+        choices=["atlas", "cube"],
+        help="Patchification method: atlas-based regions or fixed-size cubes",
+    )
+    train.add_argument(
         "--atlas",
         default="yeo",
-        help="Atlas for patchification",
+        help="Atlas for patchification (when --patch-method atlas)",
+    )
+    train.add_argument(
+        "--cube-size",
+        type=_parse_tuple,
+        default=(20, 20, 20),
+        help='Cube dimensions in voxels, e.g. "20 20 20" (when --patch-method cube)',
+    )
+    train.add_argument(
+        "--cube-stride",
+        type=_parse_tuple,
+        default=(20, 20, 20),
+        help='Stride between cubes, e.g. "20 20 20" (when --patch-method cube)',
     )
     train.add_argument("--kfold", type=int, default=4)
     train.add_argument("--n-jobs", type=int, default=-1)

@@ -12,18 +12,31 @@ from copy import deepcopy
 from nilearn.image import new_img_like
 from scipy.stats import uniform
 
-from autofmri.patchify import patchify_by_atlas
+from autofmri.patchify import patchify_by_atlas, patchify_by_cube
 
 
 class AutoEstimator(BaseEstimator, ClassifierMixin):
     """Two-stage automatic voxel selection estimator for fMRI decoding.
 
-    Stage 1: Partition the brain into atlas-based patches, score each patch
-    via cross-validated accuracy, then compute SHAP values for the top patches.
+    Stage 1: Partition the brain into patches (atlas-based or cubic), score
+    each patch via cross-validated accuracy, then compute SHAP values for the
+    top patches.
 
     Stage 2: Select the top-k patches and top-k% SHAP voxels, merge them into
     a compact feature set, and train a final classifier. Hyperparameters
     (topk_patches, topk_percent_shap) are tuned via RandomizedSearchCV.
+
+    Parameters
+    ----------
+    patch_method : str
+        ``"atlas"`` (default) uses a brain atlas to define patches.
+        ``"cube"`` uses fixed-size cubic patches.
+    atlas_name : str, optional
+        Atlas identifier (only used when ``patch_method="atlas"``).
+    cube_size : tuple of int
+        Cube dimensions in voxels (only used when ``patch_method="cube"``).
+    cube_stride : tuple of int
+        Stride between cubes (only used when ``patch_method="cube"``).
     """
 
     def __init__(
@@ -33,7 +46,10 @@ class AutoEstimator(BaseEstimator, ClassifierMixin):
         stage1_model_type=None,
         stage2_model_type=None,
         kfold=4,
+        patch_method="atlas",
         atlas_name=None,
+        cube_size=(20, 20, 20),
+        cube_stride=(20, 20, 20),
         topk_patches=0.2,
         topk_percent_shap=0.01,
         max_patches_ratio=0.5,
@@ -48,7 +64,10 @@ class AutoEstimator(BaseEstimator, ClassifierMixin):
         self.stage1_model_type = stage1_model_type
         self.stage2_model_type = stage2_model_type
         self.kfold = kfold
+        self.patch_method = patch_method
         self.atlas_name = atlas_name
+        self.cube_size = cube_size
+        self.cube_stride = cube_stride
         self.topk_patches = topk_patches
         self.topk_percent_shap = topk_percent_shap
         self.n_jobs = n_jobs
@@ -67,9 +86,7 @@ class AutoEstimator(BaseEstimator, ClassifierMixin):
         self.le_ = LabelEncoder()
         y_enc = self.le_.fit_transform(y)
 
-        self.patch_masks_ = patchify_by_atlas(
-            X, self.ref_img, atlas_name=self.atlas_name
-        )
+        self.patch_masks_ = self._create_patches(X)
 
         patch_scores = [
             cross_val_score(
@@ -152,6 +169,16 @@ class AutoEstimator(BaseEstimator, ClassifierMixin):
         )
 
         return self
+
+    def _create_patches(self, X):
+        """Dispatch to atlas-based or cube-based patchification."""
+        if self.patch_method == "cube":
+            return patchify_by_cube(
+                X, cube_size=self.cube_size, stride=self.cube_stride
+            )
+        return patchify_by_atlas(
+            X, self.ref_img, atlas_name=self.atlas_name
+        )
 
     def predict(self, X):
         y_pred = self.best_model_.predict(X)
