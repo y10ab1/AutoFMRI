@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autofmri"
+version = "0.1.0"
+description = "Automatic two-stage thresholding for fMRI decoding"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [
+    {name = "y10ab1"},
+]
+keywords = ["fMRI", "decoding", "brain-computer-interface", "neuroimaging", "machine-learning"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "nibabel>=4.0",
+    "nilearn>=0.10",
+    "scikit-learn>=1.2",
+    "numpy>=1.23",
+    "scipy>=1.10",
+    "shap>=0.42",
+    "tqdm",
+    "joblib",
+    "pandas",
+]
+
+[project.optional-dependencies]
+cnn = ["torch>=2.0", "skorch>=0.15"]
+xgboost = ["xgboost>=1.7"]
+viz = ["matplotlib>=3.6", "seaborn>=0.12"]
+dev = ["pytest>=7.0", "pytest-cov"]
+all = ["autofmri[cnn,xgboost,viz,dev]"]
+
+[project.scripts]
+autofmri = "autofmri.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/y10ab1/AutoFMRI"
+Repository = "https://github.com/y10ab1/AutoFMRI"
+Issues = "https://github.com/y10ab1/AutoFMRI/issues"
+
+[tool.setuptools.packages.find]
+include = ["autofmri*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
