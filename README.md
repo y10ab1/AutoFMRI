@@ -2,7 +2,7 @@
 
 **Automatic Two-Stage Thresholding for fMRI Decoding**
 
-[![PyPI version](https://img.shields.io/pypi/v/autofmri)](https://pypi.org/project/autofmri/)
+[![PyPI version](https://img.shields.io/pypi/v/autofmri?cacheSeconds=3600)](https://pypi.org/project/autofmri/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
